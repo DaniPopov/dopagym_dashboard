@@ -1,3 +1,60 @@
+/* Add these sidebar styles at the top of your styles.css */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #222;  /* Dark background */
+    color: white;
+    padding: 20px;
+}
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: white;  /* White text */
+}
+
+.sidebar nav ul {
+    list-style: none;
+}
+
+.sidebar nav ul li {
+    margin: 10px 0;
+}
+
+.sidebar nav ul li a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.sidebar nav ul li a:hover {
+    background-color: #444;  /* Darker hover effect */
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: flex-start;
+    padding: 10px;
+    background-color: #87CEEB;
+    border-radius: 10px;
+}
+
+.logo {
+    max-width: 60px;
+    height: auto;
+}
+
 .container {
     max-width: 800px;
     margin: 0 auto;
