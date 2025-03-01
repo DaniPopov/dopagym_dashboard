@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Member</title>
+    <link rel="stylesheet" href="/enter_member/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>לוח בקרה</h2>
+            <nav>
+                <ul>
+                    <li><a href="#" id="home-btn">ראשי</a></li>
+                    <li><a href="#" id="scan-barcode-btn">סקירת קוד</a></li>
+                    <li><a href="#" id="register-btn">רישום</a></li>
+                    <li><a href="#" id="all-trainees-btn">כל המתאמנים</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Header with Logo -->
+            <header class="header">
+                <img src="/assets/logo.png" alt="Depowine Gym Logo" class="logo">
+                <h1 class="page-title">רישום מתאמן חדש</h1>
+            </header>
+            
+            <!-- Registration Form -->
+            <section class="registration-form-container">
+                <form id="registration-form" class="registration-form">
+                    <div class="form-group">
+                        <label for="fullName">שם מלא:</label>
+                        <input type="text" id="fullName" name="fullName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="idNumber">תעודת זהות:</label>
+                        <input type="text" id="idNumber" name="idNumber">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">מספר טלפון:</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">אימייל:</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="birthDate">תאריך לידה:</label>
+                        <input type="date" id="birthDate" name="birthDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="membershipType">סוג מנוי:</label>
+                        <select id="membershipType" name="membershipType" required>
+                            <option value="">בחר סוג מנוי</option>
+                            <option value="היאבקות">היאבקות</option>
+                            <option value="איגרוף">איגרוף</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="weeklyTraining">אימונים בשבוע:</label>
+                        <select id="weeklyTraining" name="weeklyTraining" required>
+                            <option value="">בחר כמות אימונים</option>
+                            <option value="250 ש״ח אימון בשבוע">250 ש״ח אימון בשבוע</option>
+                            <option value="350 ש״ח אימון בשבוע">350 ש״ח אימון בשבוע</option>
+                            <option value="450 ש״ח אימון בשבוע">450 ש״ח אימון בשבוע</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="paymentMethod">אופן תשלום:</label>
+                        <select id="paymentMethod" name="paymentMethod" required>
+                            <option value="">בחר אופן תשלום</option>
+                            <option value="מזומן">מזומן</option>
+                            <option value="אשראי">אשראי</option>
+                            <option value="העברה בנקאית">העברה בנקאית</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">רשום מתאמן</button>
+                        <button type="button" class="cancel-btn" id="cancel-btn">ביטול</button>
+                    </div>
+                </form>
+            </section>
+
+        </main>
+        
+    </div>
+    <script src="/enter_member/app.js"></script>
+</body>
+</html>

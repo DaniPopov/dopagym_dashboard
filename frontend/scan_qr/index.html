@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>סריקת QR - Dopamine Gym</title>
+    <link rel="stylesheet" href="/scan_qr/styles.css">
+    <link rel="stylesheet" href="/shared/sidebar.css">
+    <!-- Add the QR Scanner library -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>לוח בקרה</h2>
+            <nav>
+                <ul>
+                    <li><a href="#" id="home-btn">ראשי</a></li>
+                    <li><a href="#" id="scan-barcode-btn">סקירת קוד</a></li>
+                    <li><a href="#" id="register-btn">רישום</a></li>
+                    <li><a href="#" id="all-trainees-btn">כל המתאמנים</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Header with Logo -->
+            <header class="header">
+                <img src="/assets/logo.png" alt="Dopamine Gym Logo" class="logo">
+            </header>
+            
+            <!-- Scanner Section -->
+            <section class="scanner-container">
+                <h1>סריקת כניסה למכון</h1>
+                <div id="reader"></div>
+                <div id="result" class="result-container"></div>
+            </section>
+
+        </main>
+        
+    </div>
+    <script src="/scan_qr/app.js"></script>
+</body>
+</html>

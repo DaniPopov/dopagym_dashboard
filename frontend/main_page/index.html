@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Depowine Gym Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>לוח בקרה</h2>
+            <nav>
+                <ul>
+                    <li><a href="#" id="home-btn">ראשי</a></li>
+                    <li><a href="#" id="scan-barcode-btn">סקירת קוד</a></li>
+                    <li><a href="#" id="register-btn">רישום</a></li>
+                    <li><a href="#" id="all-trainees-btn">כל המתאמנים</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Header with Logo -->
+            <header class="header">
+                <img src="/assets/logo.png" alt="Depowine Gym Logo" class="logo">
+            </header>
+            
+            <!-- Chat Section -->
+            <section class="info-container">
+                <div class="info-messages" id="info-messages"></div>
+            </section>
+
+        </main>
+        
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
