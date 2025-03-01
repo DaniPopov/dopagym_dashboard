@@ -12,6 +12,7 @@ services:
     build: ./frontend
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./frontend/main_page:/usr/share/nginx/html/main_page:ro
       - ./frontend/enter_member:/usr/share/nginx/html/enter_member:ro
@@ -19,6 +20,7 @@ services:
       - ./frontend/scan_qr:/usr/share/nginx/html/scan_qr:ro
       - ./frontend/assets:/usr/share/nginx/html/assets:ro
       - ./frontend/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - backend
     restart: unless-stopped
