@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to load members from API
     async function loadMembers() {
         try {
-            const response = await fetch('/api/members');
+            const response = await fetch('http://3.76.224.214/api/members');
             if (!response.ok) {
                 throw new Error('Failed to fetch members');
             }
