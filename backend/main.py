@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # Simplify CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://3.76.224.214"],  # Only allow your EC2 IP
+    allow_origins=["https://3.76.224.214"],  # Updated to HTTPS
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

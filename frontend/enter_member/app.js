@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Sending form data:', formData);
 
         try {
-            const response = await fetch('/api/members', {
+            const response = await fetch('https://3.76.224.214/api/members', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

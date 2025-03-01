@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("Scanned phone number:", decodedText);
 
         // Send to backend
-        fetch('/api/scan-qr', {
+        fetch('https://3.76.224.214/api/scan-qr', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

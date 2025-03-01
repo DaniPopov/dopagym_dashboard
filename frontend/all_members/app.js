@@ -7,19 +7,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Navigation event listeners
     homeBtn.addEventListener('click', () => {
-        window.location.href = '/frontend/main_page/index.html';
+        window.location.href = '/main_page/index.html';
     });
 
     scanBarcodeBtn.addEventListener('click', () => {
-        window.location.href = '/frontend/scan_qr/index.html';
+        window.location.href = '/scan_qr/index.html';
     });
 
     registerBtn.addEventListener('click', () => {
-        window.location.href = '/frontend/enter_member/index.html';
+        window.location.href = '/enter_member/index.html';
     });
 
     allTraineesBtn.addEventListener('click', () => {
-        window.location.href = '/frontend/all_members/index.html';
+        window.location.href = '/all_members/index.html';
     });
 
     // Search functionality
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to load members from API
     async function loadMembers() {
         try {
-            const response = await fetch('http://3.76.224.214/api/members');
+            const response = await fetch('https://3.76.224.214/api/members');
             if (!response.ok) {
                 throw new Error('Failed to fetch members');
             }
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.deleteMember = async function(memberId) {
         if (confirm('האם אתה בטוח שברצונך למחוק מתאמן זה?')) {
             try {
-                const response = await fetch(`http://3.76.224.214/api/members/${memberId}`, {
+                const response = await fetch(`https://3.76.224.214/api/members/${memberId}`, {
                     method: 'DELETE'
                 });
                 
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.editMember = function(memberId) {
         // Store the member ID in session storage and redirect to edit page
         sessionStorage.setItem('editMemberId', memberId);
-        window.location.href = `/frontend/enter_member/index.html?edit=true&id=${memberId}`;
+        window.location.href = `/enter_member/index.html?edit=true&id=${memberId}`;
     };
 
     // Initial load
