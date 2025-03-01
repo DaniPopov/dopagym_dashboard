@@ -16,7 +16,12 @@ logger = logging.getLogger(__name__)
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://3.76.224.214", "http://localhost", "http://3.76.224.214:9000"],  # Add your domains
+    allow_origins=[
+        "http://3.76.224.214",
+        "http://3.76.224.214:80",
+        "http://localhost",
+        "http://3.76.224.214:9000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
