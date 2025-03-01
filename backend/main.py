@@ -16,10 +16,10 @@ logger = logging.getLogger(__name__)
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins for testing
+    allow_origins=["http://3.76.224.214", "http://localhost", "http://3.76.224.214:9000"],  # Add your domains
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 class ScanRequest(BaseModel):
