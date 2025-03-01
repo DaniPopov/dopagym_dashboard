@@ -13,15 +13,10 @@ db = MongoDB()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Enable CORS
+# Simplify CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://3.76.224.214",
-        "http://3.76.224.214:80",
-        "http://localhost",
-        "http://3.76.224.214:9000"
-    ],
+    allow_origins=["http://3.76.224.214"],  # Only allow your EC2 IP
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
