@@ -8,4 +8,23 @@ services:
       - ./frontend:/app/frontend
       - ./.env:/app/.env
     restart: unless-stopped
+    networks:
+      - app_network
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certificates/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
 
