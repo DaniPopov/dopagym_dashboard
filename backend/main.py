@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import os
-
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 app = FastAPI()
 db = MongoDB()
@@ -20,32 +20,37 @@ logger = logging.getLogger(__name__)
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins for testing
+    allow_origins=["https://dopadash.com", "https://www.dopadash.com"],
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
+#app.add_middleware(
+#    TrustedHostMiddleware,
+#    allowed_hosts=["dopadash.com", "www.dopadash.com", "localhost", "127.0.0.1", "http://51.17.120.86:8000"]
+#)
+
 
 # Mount the static files directory
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
+app.mount("/static", StaticFiles(directory="/app/frontend"), name="static")
 
 # Page routes
 @app.get("/")
 @app.get("/main_page")
 async def main_page():
-    return FileResponse("frontend/main_page/index.html")
+    return FileResponse("/app/frontend/main_page/index.html")
 
 @app.get("/enter_member")
 async def enter_member():
-    return FileResponse(path="/app/frontend/enter_member/index.html")
+    return FileResponse("/app/frontend/enter_member/index.html")
 
 @app.get("/all_members")
 async def all_members():
-    return FileResponse(path="/app/frontend/all_members/index.html")
+    return FileResponse("/app/frontend/all_members/index.html")
 
 @app.get("/scan_qr")
 async def scan_qr():
-    return FileResponse(path="/app/frontend/scan_qr/index.html")
+    return FileResponse("/app/frontend/scan_qr/index.html")
 
 class ScanRequest(BaseModel):
     phone_number: str
