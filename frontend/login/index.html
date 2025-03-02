@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>התחברות - Dopamine Gym</title>
+    <link rel="stylesheet" href="/static/login/styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <img src="/static/assets/logo.png" alt="Dopamine Gym Logo" class="logo">
+            <h2>התחברות למערכת</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="username">שם משתמש</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">סיסמה</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit">התחבר</button>
+            </form>
+            <div id="error-message" class="error-message"></div>
+        </div>
+    </div>
+    <script src="/static/login/app.js"></script>
+</body>
+</html>
