@@ -6,6 +6,10 @@ from models import Member
 from typing import List
 import logging
 from pydantic import BaseModel
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+import os
+
 
 app = FastAPI()
 db = MongoDB()
@@ -21,6 +25,27 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
+
+# Mount the static files directory
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+
+# Page routes
+@app.get("/")
+@app.get("/main_page")
+async def main_page():
+    return FileResponse("frontend/main_page/index.html")
+
+@app.get("/enter_member")
+async def enter_member():
+    return FileResponse(path="/app/frontend/enter_member/index.html")
+
+@app.get("/all_members")
+async def all_members():
+    return FileResponse(path="/app/frontend/all_members/index.html")
+
+@app.get("/scan_qr")
+async def scan_qr():
+    return FileResponse(path="/app/frontend/scan_qr/index.html")
 
 class ScanRequest(BaseModel):
     phone_number: str

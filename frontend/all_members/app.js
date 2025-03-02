@@ -5,23 +5,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerBtn = document.getElementById('register-btn');
     const allTraineesBtn = document.getElementById('all-trainees-btn');
 
-    // Navigation event listeners
     homeBtn.addEventListener('click', () => {
-        window.location.href = '/main_page/index.html';
+        window.location.href = '/main_page';
     });
-
+    
     scanBarcodeBtn.addEventListener('click', () => {
-        window.location.href = '/scan_qr/index.html';
+        window.location.href = '/scan_qr';
     });
-
+    
     registerBtn.addEventListener('click', () => {
-        window.location.href = '/enter_member/index.html';
+        window.location.href = '/enter_member';
+        console.log('Register button clicked');
     });
-
+    
     allTraineesBtn.addEventListener('click', () => {
-        window.location.href = '/all_members/index.html';
+        window.location.href = '/all_members';  
+        console.log('All trainees button clicked');
     });
-
+    
     // Search functionality
     const searchInput = document.getElementById('search-input');
     searchInput.addEventListener('input', filterMembers);

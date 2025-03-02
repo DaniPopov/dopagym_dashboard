@@ -7,19 +7,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Sidebar navigation
     homeBtn.addEventListener('click', () => {
-        window.location.href = '/main_page/index.html';
+        window.location.href = '/main_page';
     });
 
     scanBarcodeBtn.addEventListener('click', () => {
-        window.location.href = '/scan_qr/index.html';
+        window.location.href = '/scan_qr';
     });
 
     registerBtn.addEventListener('click', () => {
-        window.location.href = '/enter_member/index.html';
+        window.location.href = '/enter_member';
     });
 
     allTraineesBtn.addEventListener('click', () => {
-        window.location.href = '/all_members/index.html';
+        window.location.href = '/all_members';
         console.log('All trainees button clicked');
     });
 
