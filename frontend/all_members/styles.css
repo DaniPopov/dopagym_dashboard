@@ -130,13 +130,43 @@ body {
 }
 
 .status-paid {
-    background-color: #e8f5e9;
-    color: #2e7d32;
+    background-color: #d4edda;
+    color: #155724;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: bold;
 }
 
 .status-due {
-    background-color: #ffebee;
-    color: #dc3545;
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-valid {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-expired {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-unlimited {
+    background-color: #cce5ff;
+    color: #004085;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: bold;
 }
 
 .action-buttons {
@@ -159,4 +189,72 @@ body {
 
 .delete-btn {
     background-color: #dc3545;
+}
+
+/* Freeze button style */
+.freeze-btn {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.freeze-btn:hover {
+    background-color: #138496;
+}
+
+/* Frozen status style */
+.status-frozen {
+    background-color: #cce5ff;
+    color: #004085;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .main-content {
+        width: 100%;
+        padding: 15px;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    #members-table {
+        font-size: 14px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
+/* For very small screens */
+@media screen and (max-width: 480px) {
+    #search-input {
+        width: 100%;
+    }
+    
+    #members-table th,
+    #members-table td {
+        padding: 8px 5px;
+    }
 }

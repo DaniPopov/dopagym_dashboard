@@ -62,8 +62,8 @@
                         <label for="membershipType">סוג מנוי:</label>
                         <select id="membershipType" name="membershipType" required>
                             <option value="">בחר סוג מנוי</option>
-                            <option value="היאבקות">היאבקות</option>
-                            <option value="איגרוף">איגרוף</option>
+                            <option value="היאבקות נוער">היאבקות נוער</option>
+                            <option value="לחימה משולבת">לחימה משולבת</option>
                         </select>
                     </div>
 
@@ -72,8 +72,8 @@
                         <select id="weeklyTraining" name="weeklyTraining" required>
                             <option value="">בחר כמות אימונים</option>
                             <option value="250 ש״ח אימון בשבוע">250 ש״ח אימון בשבוע</option>
-                            <option value="350 ש״ח אימון בשבוע">350 ש״ח אימון בשבוע</option>
-                            <option value="450 ש״ח אימון בשבוע">450 ש״ח אימון בשבוע</option>
+                            <option value="350 ש״ח אימון בשבוע">350 ש״ח שתי אימונים בשבוע</option>
+                            <option value="450 ש״ח אימון בשבוע">450 ש״ח שלוש אימונים בשבוע</option>
                         </select>
                     </div>
 
@@ -83,7 +83,20 @@
                             <option value="">בחר אופן תשלום</option>
                             <option value="מזומן">מזומן</option>
                             <option value="אשראי">אשראי</option>
-                            <option value="העברה בנקאית">העברה בנקאית</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subscriptionvalid">תוקף מנוי:</label>
+                        <input type="date" id="subscriptionvalid" name="subscriptionvalid" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="workoutToday">האם מתאמן היום?</label>
+                        <select id="workoutToday" name="workoutToday" required>
+                            <option value="">בחר אפשרות</option>
+                            <option value="yes">כן</option>
+                            <option value="no">לא</option>
                         </select>
                     </div>
 

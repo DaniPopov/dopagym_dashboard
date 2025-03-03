@@ -138,10 +138,22 @@ body {
 
 .form-group input,
 .form-group select {
+    width: 50%;
     padding: 10px;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 4px;
     font-size: 16px;
+    background-color: white;
+    appearance: auto; /* This ensures the dropdown arrow appears properly */
+}
+
+/* Add a specific style for select elements */
+.form-group select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 30px;
 }
 
 .form-actions {
@@ -179,3 +191,39 @@ body {
     background-color: #da190b;
 }
 
+/* Mobile responsiveness */
+@media screen and (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+        margin-bottom: 20px;
+    }
+    
+    .main-content {
+        width: 100%;
+        padding: 15px;
+    }
+    
+    .registration-form {
+        padding: 15px;
+    }
+    
+    .form-group input,
+    .form-group select {
+        width: 100%;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .submit-btn,
+    .cancel-btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+}

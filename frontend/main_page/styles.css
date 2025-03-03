@@ -99,3 +99,51 @@ body {
     text-align: right;
 }
 
+/* Mobile Responsiveness */
+@media screen and (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .main-content {
+        width: 100%;
+        padding: 15px;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .info-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .info-messages {
+        padding: 15px;
+    }
+    
+    .message {
+        max-width: 90%;
+    }
+}
+
+/* For very small screens */
+@media screen and (max-width: 480px) {
+    .info-messages {
+        padding: 10px;
+    }
+    
+    .message {
+        padding: 10px 15px;
+        max-width: 95%;
+    }
+}
+

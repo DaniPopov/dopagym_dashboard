@@ -44,35 +44,90 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Add this function to check subscription status
+    function getSubscriptionStatus(member) {
+        // Check if account is frozen
+        if (member.accountStatus === 'frozen') {
+            return {
+                text: 'מנוי מוקפא',
+                class: 'status-frozen'
+            };
+        }
+        
+        const today = new Date();
+        console.log("Today's date:", today.toISOString());
+        
+        // For credit card payments, always valid
+        if (member.paymentMethod === 'אשראי') {
+            return {
+                text: 'מנוי בתוקף',
+                class: 'status-unlimited'
+            };
+        }
+        
+        // For cash payments, check if subscription date has passed
+        if (member.subscriptionvalid) {
+            const subscriptionDate = new Date(member.subscriptionvalid);
+            if (subscriptionDate > today) {
+                return {
+                    text: 'מנוי בתוקף',
+                    class: 'status-valid'
+                };
+            } else {
+                return {
+                    text: 'מנוי פג תוקף',
+                    class: 'status-expired'
+                };
+            }
+        }
+        
+        return {
+            text: 'לא ידוע',
+            class: ''
+        };
+    }
+
     // Function to display members
     function displayMembers(members) {
-        const tableBody = document.getElementById('members-table-body');
+        const tableBody = document.querySelector('#members-table-body');
         tableBody.innerHTML = '';
-
+        
         members.forEach(member => {
+            const today = new Date();
+            console.log("this is the date now: ", today.getTime());
+            
+            const subscriptionStatus = getSubscriptionStatus(member);
+            
+            // Convert payment status to Hebrew
+            const paymentStatusHebrew = member.paymentStatus === 'paid' ? 'מנוי שולם' : 'מנוי לא שולם';
+            const paymentStatusClass = member.paymentStatus === 'paid' ? 'status-paid' : 'status-due';
+            
+            // Display appropriate data based on account status
+            const membershipType = member.accountStatus === 'frozen' ? '-' : member.membershipType;
+            const weeklyTraining = member.accountStatus === 'frozen' ? '-' : member.weeklyTraining;
+            const paymentMethod = member.accountStatus === 'frozen' ? '-' : member.paymentMethod;
+            const subscriptionValid = member.accountStatus === 'frozen' ? '-' : formatDate(member.subscriptionvalid);
+            const lastVisit = member.accountStatus === 'frozen' ? '-' : formatDate(member.lastVisit);
+            const paymentStatus = member.accountStatus === 'frozen' ? '-' : `<span class="${paymentStatusClass}">${paymentStatusHebrew}</span>`;
+            
             const row = document.createElement('tr');
-            
-            // Calculate if payment is due (30 days from last renewal)
-            const lastRenewalDate = new Date(member.lastRenewal);
-            const isPaymentDue = lastRenewalDate < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-            
             row.innerHTML = `
                 <td>${member.fullName}</td>
                 <td>${member.phone}</td>
                 <td>${member.email}</td>
-                <td>${member.membershipType}</td>
-                <td>${member.weeklyTraining}</td>
-                <td>${member.paymentMethod}</td>
-                <td>${formatDate(member.lastRenewal)}</td>
-                <td>${formatDate(member.lastVisit)}</td>
-                <td>
-                    <span class="payment-status ${isPaymentDue ? 'status-due' : 'status-paid'}">
-                        ${isPaymentDue ? 'לחדש מנוי' : 'מנוי בתוקף'}
-                    </span>
-                </td>
+                <td>${membershipType}</td>
+                <td>${weeklyTraining}</td>
+                <td>${paymentMethod}</td>
+                <td>${subscriptionValid}</td>
+                <td>${lastVisit}</td>
+                <td>${paymentStatus}</td>
+                <td><span class="${subscriptionStatus.class}">${subscriptionStatus.text}</span></td>
                 <td class="action-buttons">
                     <button class="edit-btn" onclick="editMember('${member._id}')">ערוך</button>
                     <button class="delete-btn" onclick="deleteMember('${member._id}')">מחק</button>
+                    <button class="freeze-btn" onclick="freezeMember('${member._id}', '${member.accountStatus === 'frozen' ? 'active' : 'frozen'}')">
+                        ${member.accountStatus === 'frozen' ? 'הפשר מנוי' : 'הקפא מנוי'}
+                    </button>
                 </td>
             `;
             tableBody.appendChild(row);
@@ -93,8 +148,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper function to format dates
     function formatDate(dateString) {
         if (!dateString) return 'לא זמין';
-        const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-        return new Date(dateString).toLocaleDateString('he-IL', options);
+        
+        // For the special "forever" date used for credit card payments
+        if (dateString.includes('9999-12-12')) {
+            return 'ללא הגבלה';  // "Unlimited" in Hebrew
+        }
+        
+        const date = new Date(dateString);
+        // Check if date is valid
+        if (isNaN(date.getTime())) return 'לא זמין';
+        
+        // Format date as DD/MM/YYYY
+        return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     }
 
     // Delete member function
@@ -124,6 +189,44 @@ document.addEventListener('DOMContentLoaded', () => {
         // Store the member ID in session storage and redirect to edit page
         sessionStorage.setItem('editMemberId', memberId);
         window.location.href = `/enter_member/index.html?edit=true&id=${memberId}`;
+    };
+
+    // Add freeze member function
+    window.freezeMember = async function(memberId, newStatus) {
+        if (confirm(newStatus === 'frozen' ? 'האם אתה בטוח שברצונך להקפיא את המנוי?' : 'האם אתה בטוח שברצונך להפשיר את המנוי?')) {
+            try {
+                // Get the member's phone number first
+                const response = await fetch(`/api/members/${memberId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch member data');
+                }
+                
+                const member = await response.json();
+                const phoneNumber = member.phone;
+                
+                // Update the member's account status
+                const updateResponse = await fetch(`/api/members/${phoneNumber}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        accountStatus: newStatus
+                    }),
+                });
+
+                if (updateResponse.ok) {
+                    alert(newStatus === 'frozen' ? 'המנוי הוקפא בהצלחה' : 'המנוי הופשר בהצלחה');
+                    loadMembers(); // Reload the members list
+                } else {
+                    const error = await updateResponse.json();
+                    alert(`שגיאה: ${error.detail || 'אירעה שגיאה בעת עדכון המנוי'}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('אירעה שגיאה בעת עדכון המנוי');
+            }
+        }
     };
 
     // Initial load

@@ -169,4 +169,83 @@ button:hover {
     padding: 5px;
     border-radius: 4px;
     border: 1px solid #ddd;
+}
+
+/* Mobile Responsiveness - Standardized */
+@media screen and (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .main-content {
+        width: 100%;
+        padding: 15px;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .container {
+        padding: 15px;
+    }
+    
+    .scanner-container {
+        flex-direction: column;
+    }
+    
+    #reader {
+        width: 100% !important;
+        max-width: 100%;
+    }
+    
+    .result-container {
+        width: 100%;
+        margin-top: 20px;
+    }
+    
+    .scan-again-btn {
+        width: 100%;
+    }
+}
+
+/* For very small screens - Standardized */
+@media screen and (max-width: 480px) {
+    #reader__camera_selection {
+        width: 100%;
+    }
+    
+    .scan-result {
+        padding: 10px;
+    }
+}
+
+/* Add these styles to your existing CSS */
+
+.scan-result.info {
+    background-color: #cce5ff;
+    border: 1px solid #b8daff;
+    color: #004085;
+}
+
+.cancel-btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 10px;
+}
+
+.cancel-btn:hover {
+    background-color: #5a6268;
 } 

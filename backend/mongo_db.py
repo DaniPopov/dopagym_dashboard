@@ -1,6 +1,8 @@
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytz
+
 from typing import List, Optional
 from pymongo import MongoClient
 from bson import ObjectId
@@ -14,6 +16,7 @@ import base64
 from io import BytesIO
 import base64
 from send_email import EmailSender
+from fastapi import HTTPException
 
 # Load environment variables
 load_dotenv()
@@ -87,11 +90,16 @@ class MongoDB:
     async def add_member(self, member: Member) -> dict:
         """Add a new member to the database and generate a QR code."""
         try:
+            
+            # Convert to Israel time
+            israel_tz = pytz.timezone('Asia/Jerusalem')
+            current_time_in_israel = datetime.now(israel_tz)
+            formatted_time = current_time_in_israel.strftime('%Y-%m-%d')
             member_dict = member.dict()
             
             # Set timestamps if not provided
-            member_dict.setdefault("lastRenewal", datetime.utcnow())
-            member_dict.setdefault("lastVisit", datetime.utcnow())
+            member_dict.setdefault("lastVisit", formatted_time)
+            member_dict.setdefault("allVisits", [formatted_time])
 
             # Insert the new member
             result = self.members.insert_one(member_dict)
@@ -237,35 +245,56 @@ class MongoDB:
             raise e
 
     async def scan_member_qr(self, phone_number: str) -> dict:
-        """Handle QR code scan and update last visit"""
+        """
+        Process a QR code scan for a member.
+        Returns the member data without updating the visit yet.
+        """
         try:
-            # Get member by phone number
+            # Get the member data
             member = await self.get_member(phone_number)
             
             if not member:
-                raise ValueError(f"No member found with phone number: {phone_number}")
-
-            # Update last visit
-            await self.update_last_visit(phone_number)
-
-            # Check payment status
-            last_renewal = member.get('lastRenewal')
-            if last_renewal:
-                last_renewal = datetime.fromisoformat(str(last_renewal).replace('Z', '+00:00'))
-                current_time = datetime.utcnow()
-                days_since_renewal = (current_time - last_renewal).days
-                payment_status = "valid" if days_since_renewal <= 30 else "expired"
-            else:
-                payment_status = "unknown"
-
-            return {
-                "member_name": member.get('fullName'),
-                "phone": phone_number,
-                "last_visit": member.get('lastVisit'),
-                "payment_status": payment_status,
-                "message": "Visit recorded successfully"
-            }
-
+                raise HTTPException(status_code=404, detail="Member not found")
+            
+            return member
         except Exception as e:
-            logger.error(f"❌ Error processing QR scan: {e}")
-            raise e
+            logger.error(f"Error scanning member QR: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error scanning member QR: {str(e)}")
+
+    async def record_member_visit(self, phone_number: str) -> dict:
+        """
+        Record a visit for a member after scanning their QR code.
+        """
+        try:
+            # Get the member data
+            member = await self.get_member(phone_number)
+            
+            if not member:
+                raise HTTPException(status_code=404, detail="Member not found")
+            
+            # Update the visit information
+            current_time = datetime.now()
+            
+            # Update the member's visit data
+            update_data = {
+                "lastVisit": current_time
+            }
+            
+            # Add to allVisits array
+            if "allVisits" in member and member["allVisits"]:
+                all_visits = member["allVisits"]
+                all_visits.append(current_time)
+                update_data["allVisits"] = all_visits
+            else:
+                update_data["allVisits"] = [current_time]
+            
+            # Update the member record
+            result = await self.update_member(phone_number, update_data)
+            
+            if not result:
+                raise HTTPException(status_code=500, detail="Failed to update member visit")
+            
+            return {"success": True, "message": "Visit recorded successfully"}
+        except Exception as e:
+            logger.error(f"Error recording member visit: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error recording member visit: {str(e)}")
