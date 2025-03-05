@@ -11,3 +11,4 @@ passlib[bcrypt]
 python-multipart
 bcrypt==4.0.1
 pytz
+pyjwt==2.6.0

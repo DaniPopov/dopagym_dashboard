@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function processScan(phoneNumber) {
         try {
             console.log("this is the phone number: ", phoneNumber);
-            const response = await fetch(`/api/members/scan/${phoneNumber}`);
+            const response = await fetch(`/api/v1/scan/scan-qr/${phoneNumber}`);
             console.log("this is the response: ", response);
             const data = await response.json();
             console.log("this is the data: ", data);
@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function confirmEntry(phoneNumber) {
         try {
-            const response = await fetch(`/api/members/${phoneNumber}/visit`, {
+            const response = await fetch(`/api/v1/members/record-visit/${phoneNumber}`, {
                 method: 'POST'
             });
             

@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Sending form data:', formData);
 
         try {
-            const response = await fetch('/api/members', {
+            const response = await fetch('/api/v1/members/add-member', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

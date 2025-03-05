@@ -6,7 +6,7 @@ import pytz
 from typing import List, Optional
 from pymongo import MongoClient
 from bson import ObjectId
-from models import Member
+from models.member import Member
 from dotenv import load_dotenv
 
 import qrcode
@@ -15,7 +15,7 @@ import base64
 
 from io import BytesIO
 import base64
-from send_email import EmailSender
+from utils.send_email import EmailSender
 from fastapi import HTTPException
 
 # Load environment variables

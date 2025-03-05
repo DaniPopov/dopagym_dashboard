@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to load members from API
     async function loadMembers() {
         try {
-            const response = await fetch('/api/members');
+            const response = await fetch('/api/v1/members/get-all-members');
             if (!response.ok) {
                 throw new Error('Failed to fetch members');
             }

@@ -1,60 +1,83 @@
-import uvicorn
-from fastapi import FastAPI, HTTPException, Depends, Cookie
-from fastapi.middleware.cors import CORSMiddleware
-from mongo_db import MongoDB
-from models import Member
-from typing import List
 import logging
-from pydantic import BaseModel
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Depends, Request, Cookie
+from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-import os
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from datetime import datetime, timedelta
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_303_SEE_OTHER
+from starlette.middleware.base import BaseHTTPMiddleware
 
-# Authentication settings
-SECRET_KEY = "q1e3w2r4"  # Change this!
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+# Import routers
+from routers import members, scan, auth
+from routers.auth import verify_session_token
 
 app = FastAPI()
-db = MongoDB()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Authentication middleware
+class AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        logger.info(f"Request path: {request.url.path}")
+        
+        # Paths that don't require authentication
+        public_paths = ["/login", "/api/v1/auth/login", "/static/", "/favicon.ico"]        
+        
+        # Check if the path is public
+        for path in public_paths:
+            if request.url.path.startswith(path):
+                return await call_next(request)
+        
+        # Get session token from cookie
+        session_token = request.cookies.get("session_token")
+        
+        # If no token or invalid token, redirect to login
+        if not session_token or not verify_session_token(session_token):
+            logger.warning(f"Authentication failed for path: {request.url.path}")
+            if request.url.path.startswith("/api/"):
+                return JSONResponse(
+                    status_code=HTTP_401_UNAUTHORIZED,
+                    content={"detail": "Not authenticated"}
+                )
+            return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
+        
+        # Token is valid, proceed
+        return await call_next(request)
 
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://dopadash.com", "https://www.dopadash.com"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
+# Add auth middleware
+app.add_middleware(AuthMiddleware)
 
 # Mount the static files directory
 app.mount("/static", StaticFiles(directory="/app/frontend"), name="static")
 
-# Mock user database - replace with real DB in production
-fake_users_db = {
-    "admin": {
-        "username": "admin",
-        "hashed_password": "admin1234"  # "password123"
-    }
-}
+# Include routers
+app.include_router(members.router)
+app.include_router(scan.router)
+app.include_router(auth.router)
 
-# Page routes
-@app.get("/")
-@app.get("/main_page")
-async def main_page():
-    return FileResponse("/app/frontend/main_page/index.html")
-
+# Login page - no auth required
 @app.get("/login")
 async def login_page():
     return FileResponse("/app/frontend/login/index.html")
+
+# Root route - redirect to login
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/login")
+
+# Protected routes - require authentication
+@app.get("/main_page")
+async def main_page():
+    return FileResponse("/app/frontend/main_page/index.html")
 
 @app.get("/enter_member")
 async def enter_member():
@@ -68,94 +91,4 @@ async def all_members():
 async def scan_qr():
     return FileResponse("/app/frontend/scan_qr/index.html")
 
-class ScanRequest(BaseModel):
-    phone_number: str
 
-@app.post("/api/members")
-async def add_member(member: Member):
-    try:
-        # Basic validation
-        if not member.phone or not member.fullName:
-            raise HTTPException(status_code=400, detail="שם מלא ומספר טלפון הם שדות חובה")
-        
-        # Check if phone number already exists
-        existing_member = await db.get_member(member.phone)
-        if existing_member:
-            raise HTTPException(status_code=400, detail="מספר טלפון זה כבר קיים במערכת")
-
-        # Add member
-        result = await db.add_member(member)
-        logger.info(f"✅ Member added: {member}")
-        return {"message": "Member added successfully", "id": result.get("id")}
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        logger.error(f"❌ Error adding member: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/members/{phone_number}")
-async def get_member(phone_number: str):
-    try:
-        member = await db.get_member(phone_number)
-        logger.info(f"✅ Member found: {member}")
-        return member
-    except Exception as e:
-        logger.error(f"❌ Error getting member: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.delete("/api/members/delete-all")
-async def delete_all_members():
-    """Delete all members from the database"""
-    try:
-        result = await db.delete_all_members()
-        return result
-    except Exception as e:
-        logger.error(f"❌ Error in delete_all_members: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to delete all members: {str(e)}"
-        )
-
-@app.delete("/api/members/{member_id}")
-async def delete_member(member_id: str):
-    """Delete a specific member"""
-    try:
-        success = await db.delete_member(member_id)
-        if success:
-            return {"message": "Member deleted successfully"}
-        raise HTTPException(status_code=404, detail="Member not found")
-    except Exception as e:
-        logger.error(f"❌ Error deleting member: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/members")
-async def get_all_members():
-    try:
-        members = await db.get_all_members()
-        logger.info(f"✅ All members found: {members}")
-        return members
-    except Exception as e:
-        logger.error(f"❌ Error getting all members: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/scan-qr")
-async def scan_qr(scan_request: ScanRequest):
-    try:
-        result = await db.scan_member_qr(scan_request.phone_number)
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        logger.error(f"❌ Error in scan_qr: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/members/scan/{phone_number}")
-async def scan_member(phone_number: str):
-    return await db.scan_member_qr(phone_number)
-
-@app.post("/api/members/{phone_number}/visit")
-async def record_visit(phone_number: str):
-    return await db.record_member_visit(phone_number)
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
