@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html dir="rtl">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>סריקת QR - Dopamine Gym</title>
     <link rel="stylesheet" href="/static/scan_qr/styles.css">
+    <script src="/static/common/auth.js"></script>
     <!-- Add the QR Scanner library -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
@@ -29,13 +31,13 @@
             <!-- Header with Logo -->
             <header class="header">
                 <img src="/static/assets/logo.png" alt="Dopamine Gym Logo" class="logo">
+                <h1 class="page-title">סריקת כניסה למכון</h1>
             </header>
             
             <!-- Scanner Section -->
             <section class="scanner-container">
-                <h1>סריקת כניסה למכון</h1>
                 <div id="reader"></div>
-                <div id="result" class="result-container"></div>
+                <div id="scan-result" class="result-container"></div>
             </section>
 
         </main>

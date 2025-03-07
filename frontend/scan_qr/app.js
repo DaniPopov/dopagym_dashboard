@@ -74,17 +74,24 @@ document.addEventListener('DOMContentLoaded', function () {
         // Show loading state
         resultContainer.innerHTML = '<p>מעבד את הנתונים...</p>';
         
-        // Call API to process the scan
+        // Call API to process the scan - now using member ID instead of phone number
         processScan(decodedText);
     }
 
-    async function processScan(phoneNumber) {
+    async function processScan(memberId) {
         try {
-            console.log("this is the phone number: ", phoneNumber);
-            const response = await fetch(`/api/v1/scan/scan-qr/${phoneNumber}`);
-            console.log("this is the response: ", response);
+            console.log("Member ID from QR code: ", memberId);
+            // Updated API endpoint to use member ID
+            const response = await fetch(`/api/v1/scan/scan-qr`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ member_id: memberId })
+            });
+            console.log("Response: ", response);
             const data = await response.json();
-            console.log("this is the data: ", data);
+            console.log("Data: ", data);
             
             if (!response.ok) {
                 displayScanError(data.detail || 'מתאמן לא נמצא');
@@ -112,7 +119,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (member.accountStatus === 'frozen') {
             return {
                 valid: false,
-                message: 'המנוי מוקפא'
+                message: 'המנוי מוקפא',
+                details: 'לא ניתן להיכנס למכון כאשר המנוי מוקפא'
             };
         }
         
@@ -130,6 +138,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const today = new Date();
             
             if (subscriptionDate > today) {
+                // Check if this is their last week
+                const oneWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+                if (subscriptionDate <= oneWeek) {
+                    return {
+                        valid: true,
+                        message: 'מנוי בתוקף',
+                        warning: 'שים לב: זהו השבוע האחרון למנוי שלך. נא לחדש בהקדם'
+                    };
+                }
                 return {
                     valid: true,
                     message: 'מנוי בתוקף'
@@ -137,7 +154,8 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 return {
                     valid: false,
-                    message: 'מנוי פג תוקף'
+                    message: 'מנוי פג תוקף',
+                    details: 'נא לחדש את המנוי'
                 };
             }
         }
@@ -149,8 +167,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function checkWorkoutLimit(member) {
-        // Get allowed workouts per week based on membership type
-        let allowedWorkoutsPerWeek = 1; // Default
+        let allowedWorkoutsPerWeek = 1;
         
         if (member.weeklyTraining.includes('250')) {
             allowedWorkoutsPerWeek = 1;
@@ -160,64 +177,35 @@ document.addEventListener('DOMContentLoaded', function () {
             allowedWorkoutsPerWeek = 3;
         }
         
-        // Count workouts in the current week
+        // Get start of current week (Sunday)
         const today = new Date();
         const currentWeekStart = new Date(today);
-        const dayOfWeek = today.getDay(); // 0 is Sunday, 6 is Saturday
-        
-        // Set to the beginning of the week (Sunday)
-        currentWeekStart.setDate(today.getDate() - dayOfWeek);
+        currentWeekStart.setDate(today.getDate() - today.getDay());
         currentWeekStart.setHours(0, 0, 0, 0);
         
-        // Find the date of the last workout that counts as the start of the period
-        // For example, if they came on Friday, they can't come again until next Friday
-        let lastWorkoutDate = null;
+        // Count workouts in current week only
         let workoutsThisWeek = 0;
-        
         if (member.allVisits && member.allVisits.length > 0) {
-            // Sort visits in descending order (newest first)
-            const sortedVisits = [...member.allVisits].sort((a, b) => new Date(b) - new Date(a));
-            
-            // Count workouts in the current week
-            workoutsThisWeek = sortedVisits.filter(visit => {
+            workoutsThisWeek = member.allVisits.filter(visit => {
                 const visitDate = new Date(visit);
                 return visitDate >= currentWeekStart;
             }).length;
-            
-            // Get the date of the first workout in the current period
-            if (workoutsThisWeek > 0) {
-                // Find the oldest visit in the current week
-                const oldestVisitThisWeek = sortedVisits
-                    .filter(visit => new Date(visit) >= currentWeekStart)
-                    .pop();
-                    
-                if (oldestVisitThisWeek) {
-                    lastWorkoutDate = new Date(oldestVisitThisWeek);
-                }
-            }
         }
         
-        // Check if member has reached their weekly limit
         if (workoutsThisWeek >= allowedWorkoutsPerWeek) {
-            // Calculate when they can come back
-            let nextAvailableDate = null;
-            if (lastWorkoutDate) {
-                nextAvailableDate = new Date(lastWorkoutDate);
-                nextAvailableDate.setDate(nextAvailableDate.getDate() + 7);
-            }
+            const nextWeekStart = new Date(currentWeekStart);
+            nextWeekStart.setDate(nextWeekStart.getDate() + 7);
             
             return {
                 canWorkout: false,
                 message: `הגעת למגבלת האימונים השבועית (${allowedWorkoutsPerWeek} אימונים בשבוע)`,
-                workoutsThisWeek: workoutsThisWeek,
-                nextAvailableDate: nextAvailableDate ? formatDate(nextAvailableDate) : 'לא ידוע'
+                nextAvailableDate: formatDate(nextWeekStart)
             };
         }
         
         return {
             canWorkout: true,
-            message: `אימון ${workoutsThisWeek + 1} מתוך ${allowedWorkoutsPerWeek} השבוע`,
-            workoutsThisWeek: workoutsThisWeek
+            message: `אימון ${workoutsThisWeek + 1} מתוך ${allowedWorkoutsPerWeek} השבוע`
         };
     }
 
@@ -239,20 +227,39 @@ document.addEventListener('DOMContentLoaded', function () {
                     <p><strong>טלפון:</strong> ${member.phone}</p>
                     <p><strong>סוג מנוי:</strong> ${member.membershipType}</p>
                     <p><strong>תכנית אימונים:</strong> ${member.weeklyTraining}</p>
-                    <p><strong>סטטוס מנוי:</strong> <span class="${subscriptionStatus.valid ? 'status-valid' : 'status-expired'}">${subscriptionStatus.message}</span></p>
-                    <p><strong>סטטוס תשלום:</strong> <span class="${paymentStatus ? 'status-paid' : 'status-due'}">${paymentStatus ? 'מנוי שולם' : 'מנוי לא שולם'}</span></p>
-                    <p><strong>אימונים השבוע:</strong> ${workoutLimitCheck.workoutsThisWeek} מתוך ${member.weeklyTraining.includes('250') ? '1' : member.weeklyTraining.includes('350') ? '2' : '3'}</p>
-        `;
-        
-        if (!workoutLimitCheck.canWorkout) {
-            resultHTML += `
-                    <p><strong>הערה:</strong> ${workoutLimitCheck.message}</p>
-                    <p><strong>אימון הבא אפשרי:</strong> ${workoutLimitCheck.nextAvailableDate}</p>
-            `;
+                    <p><strong>סטטוס מנוי:</strong> 
+                        <span class="${subscriptionStatus.valid ? 'status-valid' : 'status-expired'}">
+                            ${subscriptionStatus.message}
+                        </span>
+                    </p>`;
+
+        // Add warning message if it's the last week
+        if (subscriptionStatus.warning) {
+            resultHTML += `<p class="warning-message">${subscriptionStatus.warning}</p>`;
         }
-        
+
+        // Add payment status
         resultHTML += `
-                </div>
+                    <p><strong>סטטוס תשלום:</strong> 
+                        <span class="${paymentStatus ? 'status-paid' : 'status-due'}">
+                            ${paymentStatus ? 'מנוי שולם' : 'מנוי לא שולם'}
+                        </span>
+                    </p>
+                    <p><strong>אימונים השבוע:</strong> ${workoutLimitCheck.message}</p>
+                </div>`;
+
+        // Add error details if entry is not allowed
+        if (!canEnter) {
+            resultHTML += `
+                <div class="error-details">
+                    ${subscriptionStatus.details ? `<p>${subscriptionStatus.details}</p>` : ''}
+                    ${!workoutLimitCheck.canWorkout ? 
+                        `<p>אימון הבא אפשרי מתאריך: ${workoutLimitCheck.nextAvailableDate}</p>` : ''}
+                </div>`;
+        }
+
+        // Add action buttons
+        resultHTML += `
                 <div class="scan-actions">
                     ${canEnter ? 
                         `<button id="confirm-entry-btn" class="confirm-btn">אשר כניסה</button>
@@ -260,15 +267,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         `<button id="scan-again-btn" class="scan-again-btn">סרוק שוב</button>`
                     }
                 </div>
-            </div>
-        `;
+            </div>`;
         
         resultContainer.innerHTML = resultHTML;
         
-        // Add event listeners to buttons
+        // Add button event listeners
         if (canEnter) {
             document.getElementById('confirm-entry-btn').addEventListener('click', () => {
-                confirmEntry(member.phone);
+                confirmEntry(member._id);
             });
             
             document.getElementById('cancel-entry-btn').addEventListener('click', () => {
@@ -281,9 +287,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    async function confirmEntry(phoneNumber) {
+    async function confirmEntry(memberId) {
         try {
-            const response = await fetch(`/api/v1/members/record-visit/${phoneNumber}`, {
+            // Updated API endpoint to use member ID
+            const response = await fetch(`/api/v1/members/visit/id/${memberId}`, {
                 method: 'POST'
             });
             

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פרופיל מתאמן - Dopamine Gym</title>
+    <link rel="stylesheet" href="/static/member_profile/style.css">
+    <script src="/static/common/auth.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>לוח בקרה</h2>
+            <nav>
+                <ul>
+                    <li><a href="#" id="home-btn">ראשי</a></li>
+                    <li><a href="#" id="scan-barcode-btn">סקירת קוד</a></li>
+                    <li><a href="#" id="register-btn">רישום</a></li>
+                    <li><a href="#" id="all-trainees-btn">כל המתאמנים</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header with Logo -->
+            <header class="header">
+                <img src="/static/assets/logo.png" alt="Dopamine Gym Logo" class="logo">
+                <h1 class="page-title">פרופיל מתאמן</h1>
+            </header>
+            
+            <!-- Member Profile Section -->
+            <section class="profile-container">
+                <div class="profile-header">
+                    <div class="profile-info">
+                        <h2 id="member-name">טוען...</h2>
+                        <div class="status-badges">
+                            <span id="membership-status" class="status-badge">טוען...</span>
+                            <span id="payment-status" class="status-badge">טוען...</span>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <button id="edit-member-btn" class="action-btn edit-btn">ערוך מתאמן</button>
+                        <button id="freeze-member-btn" class="action-btn freeze-btn">הקפא מנוי</button>
+                        <button id="delete-member-btn" class="action-btn delete-btn">מחק מתאמן</button>
+                    </div>
+                </div>
+
+                <div class="profile-content">
+                    <div class="profile-details">
+                        <div class="details-section">
+                            <h3>פרטים אישיים</h3>
+                            <div class="detail-row">
+                                <span class="detail-label">מספר טלפון:</span>
+                                <span id="member-phone" class="detail-value">טוען...</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">אימייל:</span>
+                                <span id="member-email" class="detail-value">טוען...</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">תעודת זהות:</span>
+                                <span id="member-id" class="detail-value">טוען...</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">תאריך לידה:</span>
+                                <span id="member-birthdate" class="detail-value">טוען...</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">איש קשר לחירום:</span>
+                                <span id="emergency-contact" class="detail-value">טוען...</span>
+                            </div>
+                        </div>
+
+                        <div class="details-section">
+                            <h3>פרטי מנוי</h3>
+                            <div class="detail-row">
+                                <span class="detail-label">סוג מנוי:</span>
+                                <span id="membership-type" class="detail-value">טוען...</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">אימונים בשבוע:</span>
+                                <span id="weekly-training" class="detail-value">טוען...</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">אופן תשלום:</span>
+                                <span id="payment-method" class="detail-value">טוען...</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">תוקף מנוי:</span>
+                                <span id="subscription-valid" class="detail-value">טוען...</span>
+                            </div>
+                        </div>
+                        
+                        <!-- New Notes Section -->
+                        <div class="details-section notes-section">
+                            <h3>הערות</h3>
+                            <div id="notes-display" class="notes-display">אין הערות</div>
+                            <div id="notes-edit" class="notes-edit" style="display: none;">
+                                <textarea id="notes-textarea" placeholder="הוסף הערות כאן..."></textarea>
+                                <div class="notes-actions">
+                                    <button id="save-notes-btn" class="action-btn save-btn">שמור</button>
+                                    <button id="cancel-notes-btn" class="action-btn cancel-btn">בטל</button>
+                                </div>
+                            </div>
+                            <button id="edit-notes-btn" class="action-btn edit-notes-btn">ערוך הערות</button>
+                        </div>
+                    </div>
+
+                    <div class="qr-code-section">
+                        <h3>קוד QR</h3>
+                        <div id="qr-code-container" class="qr-code-container">
+                            <img id="qr-code-image" src="" alt="QR Code">
+                        </div>
+                        <button id="download-qr-btn" class="action-btn download-btn">הורד קוד QR</button>
+                    </div>
+                </div>
+
+                <div class="visits-section">
+                    <h3>היסטוריית ביקורים</h3>
+                    <div class="visit-stats">
+                        <div class="stat-box">
+                            <span class="stat-value" id="total-visits">0</span>
+                            <span class="stat-label">סה"כ ביקורים</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value" id="last-visit">-</span>
+                            <span class="stat-label">ביקור אחרון</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value" id="visits-this-week">0</span>
+                            <span class="stat-label">ביקורים השבוע</span>
+                        </div>
+                    </div>
+                    <div class="visits-table-container">
+                        <table id="visits-table">
+                            <thead>
+                                <tr>
+                                    <th>תאריך</th>
+                                    <th>שעה</th>
+                                </tr>
+                            </thead>
+                            <tbody id="visits-table-body">
+                                <!-- Visits will be added dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Edit Member Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>ערוך פרטי מתאמן</h2>
+            <form id="edit-form">
+                <div class="form-group">
+                    <label for="edit-name">שם מלא:</label>
+                    <input type="text" id="edit-name" name="fullName" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-phone">מספר טלפון:</label>
+                    <input type="tel" id="edit-phone" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-email">אימייל:</label>
+                    <input type="email" id="edit-email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-id">תעודת זהות:</label>
+                    <input type="text" id="edit-id" name="idNumber">
+                </div>
+                <div class="form-group">
+                    <label for="edit-birthdate">תאריך לידה:</label>
+                    <input type="date" id="edit-birthdate" name="birthDate">
+                </div>
+                <div class="form-group">
+                    <label for="edit-emergency">איש קשר לחירום:</label>
+                    <input type="text" id="edit-emergency" name="emergency_contact" placeholder="שם ומספר טלפון">
+                </div>
+                <div class="form-group">
+                    <label for="edit-membership-type">סוג מנוי:</label>
+                    <select id="edit-membership-type" name="membershipType">
+                        <option value="היאבקות נוער">היאבקות נוער</option>
+                        <option value="היאבקות בוגרים">היאבקות בוגרים</option>
+                        <option value="אימון אישי">אימון אישי</option>
+                        <option value="חדר כושר">חדר כושר</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-weekly-training">אימונים בשבוע:</label>
+                    <select id="edit-weekly-training" name="weeklyTraining">
+                        <option value="350 ש״ח אימון בשבוע">350 ש״ח אימון בשבוע</option>
+                        <option value="450 ש״ח 2 אימונים בשבוע">450 ש״ח 2 אימונים בשבוע</option>
+                        <option value="550 ש״ח 3 אימונים בשבוע">550 ש״ח 3 אימונים בשבוע</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-payment-method">אופן תשלום:</label>
+                    <select id="edit-payment-method" name="paymentMethod">
+                        <option value="מזומן">מזומן</option>
+                        <option value="אשראי">אשראי</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-subscription-valid">תוקף מנוי:</label>
+                    <input type="date" id="edit-subscription-valid" name="subscriptionvalid">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="action-btn save-btn">שמור</button>
+                    <button type="button" id="cancel-edit-btn" class="action-btn cancel-btn">בטל</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="/static/member_profile/app.js"></script>
+</body>
+</html>

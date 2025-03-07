@@ -169,52 +169,12 @@ body {
     font-weight: bold;
 }
 
+/* Update the action-buttons class to center the single button */
 .action-buttons {
     display: flex;
-    gap: 5px;
+    justify-content: center;
+    align-items: center;
 }
-
-.edit-btn,
-.delete-btn {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    color: white;
-}
-
-.edit-btn {
-    background-color: #0d6efd;
-}
-
-.delete-btn {
-    background-color: #dc3545;
-}
-
-/* Freeze button style */
-.freeze-btn {
-    background-color: #17a2b8;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-right: 5px;
-}
-
-.freeze-btn:hover {
-    background-color: #138496;
-}
-
-/* Frozen status style */
-.status-frozen {
-    background-color: #cce5ff;
-    color: #004085;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-weight: bold;
-}
-
 /* Mobile Responsiveness */
 @media screen and (max-width: 768px) {
     .dashboard-container {
@@ -258,3 +218,54 @@ body {
         padding: 8px 5px;
     }
 }
+
+/* Make sure these status classes are defined */
+.status-paid {
+    color: green;
+    font-weight: bold;
+}
+
+.status-due {
+    color: red;
+    font-weight: bold;
+}
+
+.status-valid {
+    color: green;
+    font-weight: bold;
+}
+
+.status-expired {
+    color: red;
+    font-weight: bold;
+}
+
+.status-frozen {
+    color: #2196F3;
+    font-weight: bold;
+}
+
+/* Reset any existing button styles */
+.view-btn, .edit-btn, .delete-btn, .freeze-btn {
+    display: none !important;
+}
+
+/* Make sure the blue button is the only one visible */
+.blue-btn {
+    background-color: #1e88e5 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 8px 16px !important;
+    cursor: pointer !important;
+    font-weight: bold !important;
+    transition: background-color 0.3s !important;
+    width: 100% !important;
+    max-width: 120px !important;
+    display: block !important;
+}
+
+.blue-btn:hover {
+    background-color: #1565c0 !important;
+}
+

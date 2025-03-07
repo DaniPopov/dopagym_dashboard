@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Depowine Gym Dashboard</title>
     <link rel="stylesheet" href="/static/main_page/styles.css">
+    <script src="/static/common/auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
-        
         <!-- Sidebar -->
         <aside class="sidebar">
             <h2>לוח בקרה</h2>
             <nav>
                 <ul>
-                    <li><a href="#" id="home-btn">ראשי</a></li>
+                    <li><a href="#" id="home-btn" class="active">ראשי</a></li>
                     <li><a href="#" id="scan-barcode-btn">סקירת קוד</a></li>
                     <li><a href="#" id="register-btn">רישום</a></li>
                     <li><a href="#" id="all-trainees-btn">כל המתאמנים</a></li>
@@ -24,19 +25,90 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            
             <!-- Header with Logo -->
             <header class="header">
                 <img src="/static/assets/logo.png" alt="Depowine Gym Logo" class="logo">
+                <h1 class="page-title">לוח בקרה ראשי</h1>
             </header>
             
-            <!-- Chat Section -->
-            <section class="info-container">
-                <div class="info-messages" id="info-messages"></div>
-            </section>
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <h3>כניסות היום</h3>
+                    <div id="today-entries" class="stat-number">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <h3>סה״כ מתאמנים</h3>
+                    <div id="total-members" class="stat-number">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <h3>מנויים פעילים</h3>
+                    <div id="active-members" class="stat-number">0</div>
+                </div>
+            </div>
 
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>התפלגות סוגי מנויים</h3>
+                    </div>
+                    <canvas id="class-distribution"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>כניסות השבוע</h3>
+                    </div>
+                    <canvas id="weekly-entries"></canvas>
+                </div>
+            </div>
+
+            <!-- Tables Section -->
+            <div class="tables-section">
+                <div class="table-container warning-table">
+                    <div class="table-header">
+                        <h3>מנויים שעומדים לפוג בקרוב</h3>
+                        <span class="table-badge">התראה</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="expiring-memberships">
+                            <thead>
+                                <tr>
+                                    <th>שם</th>
+                                    <th>טלפון</th>
+                                    <th>תאריך סיום</th>
+                                    <th>סוג מנוי</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="table-container alert-table">
+                    <div class="table-header">
+                        <h3>מתאמנים לא פעילים</h3>
+                        <span class="table-badge">דורש טיפול</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="inactive-members">
+                            <thead>
+                                <tr>
+                                    <th>שם</th>
+                                    <th>טלפון</th>
+                                    <th>ביקור אחרון</th>
+                                    <th>ימים מאז</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </main>
-        
     </div>
     <script src="/static/main_page/app.js"></script>
 </body>

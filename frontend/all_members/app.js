@@ -15,12 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     registerBtn.addEventListener('click', () => {
         window.location.href = '/enter_member';
-        console.log('Register button clicked');
     });
     
     allTraineesBtn.addEventListener('click', () => {
-        window.location.href = '/all_members';  
-        console.log('All trainees button clicked');
+        window.location.href = '/all_members';
     });
     
     // Search functionality
@@ -32,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to load members from API
     async function loadMembers() {
         try {
-            const response = await fetch('/api/v1/members/get-all-members');
+            const response = await fetch('/api/v1/members/');
             if (!response.ok) {
                 throw new Error('Failed to fetch members');
             }
@@ -44,7 +42,100 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Add this function to check subscription status
+    // Function to display members - COMPLETELY REWRITTEN
+    function displayMembers(members) {
+        const tableBody = document.querySelector('#members-table-body');
+        tableBody.innerHTML = '';
+        
+        members.forEach(member => {
+            const today = new Date();
+            
+            // Get subscription status based on new logic
+            const subscriptionStatus = getSubscriptionStatus(member);
+            
+            // Get payment status based on new logic
+            const paymentStatus = getPaymentStatus(member);
+            
+            // Display appropriate data based on account status
+            const membershipType = member.accountStatus === 'frozen' ? '-' : member.membershipType;
+            const weeklyTraining = member.accountStatus === 'frozen' ? '-' : member.weeklyTraining;
+            const paymentMethod = member.accountStatus === 'frozen' ? '-' : member.paymentMethod;
+            const subscriptionValid = member.accountStatus === 'frozen' ? '-' : formatDate(member.subscriptionvalid);
+            const lastVisit = member.accountStatus === 'frozen' ? '-' : formatDate(member.lastVisit);
+            
+            const row = document.createElement('tr');
+            
+            // Create each cell individually to avoid HTML injection issues
+            const nameCell = document.createElement('td');
+            nameCell.textContent = member.fullName;
+            
+            const phoneCell = document.createElement('td');
+            phoneCell.textContent = member.phone;
+            
+            const emailCell = document.createElement('td');
+            emailCell.textContent = member.email;
+            
+            const typeCell = document.createElement('td');
+            typeCell.textContent = membershipType;
+            
+            const weeklyCell = document.createElement('td');
+            weeklyCell.textContent = weeklyTraining;
+            
+            const methodCell = document.createElement('td');
+            methodCell.textContent = paymentMethod;
+            
+            const validCell = document.createElement('td');
+            validCell.textContent = subscriptionValid;
+            
+            const visitCell = document.createElement('td');
+            visitCell.textContent = lastVisit;
+            
+            // Payment status cell
+            const paymentCell = document.createElement('td');
+            const paymentSpan = document.createElement('span');
+            paymentSpan.className = paymentStatus.class;
+            paymentSpan.textContent = paymentStatus.text;
+            paymentCell.appendChild(paymentSpan);
+            
+            // Subscription status cell
+            const statusCell = document.createElement('td');
+            const statusSpan = document.createElement('span');
+            statusSpan.className = subscriptionStatus.class;
+            statusSpan.textContent = subscriptionStatus.text;
+            statusCell.appendChild(statusSpan);
+            
+            // Action cell with only one button
+            const actionCell = document.createElement('td');
+            actionCell.className = 'action-buttons';
+            
+            const viewButton = document.createElement('button');
+            viewButton.className = 'blue-btn';
+            viewButton.textContent = 'צפה בפרופיל';
+            viewButton.onclick = function() {
+                viewMemberProfile(member._id);
+            };
+            
+            actionCell.appendChild(viewButton);
+            
+            // Add all cells to the row
+            row.appendChild(nameCell);
+            row.appendChild(phoneCell);
+            row.appendChild(emailCell);
+            row.appendChild(typeCell);
+            row.appendChild(weeklyCell);
+            row.appendChild(methodCell);
+            row.appendChild(validCell);
+            row.appendChild(visitCell);
+            row.appendChild(paymentCell);
+            row.appendChild(statusCell);
+            row.appendChild(actionCell);
+            
+            // Add the row to the table
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Updated function to check subscription status
     function getSubscriptionStatus(member) {
         // Check if account is frozen
         if (member.accountStatus === 'frozen') {
@@ -54,84 +145,57 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
         
-        const today = new Date();
-        console.log("Today's date:", today.toISOString());
+        // Check if account is deactivated
+        if (member.accountStatus === 'inactive') {
+            return {
+                text: 'מנוי לא בתוקף',
+                class: 'status-expired'
+            };
+        }
         
-        // For credit card payments, always valid
+        // Otherwise, the membership is active
+        return {
+            text: 'מנוי בתוקף',
+            class: 'status-valid'
+        };
+    }
+
+    // New function to check payment status
+    function getPaymentStatus(member) {
+        const today = new Date();
+        
+        // For credit card payments, always paid
         if (member.paymentMethod === 'אשראי') {
             return {
-                text: 'מנוי בתוקף',
-                class: 'status-unlimited'
+                text: 'מנוי שולם',
+                class: 'status-paid'
             };
         }
         
         // For cash payments, check if subscription date has passed
         if (member.subscriptionvalid) {
             const subscriptionDate = new Date(member.subscriptionvalid);
-            if (subscriptionDate > today) {
+            
+            // If subscription date is in the future or today, it's paid
+            if (subscriptionDate >= today) {
                 return {
-                    text: 'מנוי בתוקף',
-                    class: 'status-valid'
+                    text: 'מנוי שולם',
+                    class: 'status-paid'
                 };
             } else {
+                // If subscription date has passed, it's not paid
                 return {
-                    text: 'מנוי פג תוקף',
-                    class: 'status-expired'
+                    text: 'מנוי לא שולם',
+                    class: 'status-due'
                 };
             }
         }
         
+        // Default case
         return {
-            text: 'לא ידוע',
-            class: ''
+            text: 'מנוי לא שולם',
+            class: 'status-due'
         };
-    }
-
-    // Function to display members
-    function displayMembers(members) {
-        const tableBody = document.querySelector('#members-table-body');
-        tableBody.innerHTML = '';
-        
-        members.forEach(member => {
-            const today = new Date();
-            console.log("this is the date now: ", today.getTime());
-            
-            const subscriptionStatus = getSubscriptionStatus(member);
-            
-            // Convert payment status to Hebrew
-            const paymentStatusHebrew = member.paymentStatus === 'paid' ? 'מנוי שולם' : 'מנוי לא שולם';
-            const paymentStatusClass = member.paymentStatus === 'paid' ? 'status-paid' : 'status-due';
-            
-            // Display appropriate data based on account status
-            const membershipType = member.accountStatus === 'frozen' ? '-' : member.membershipType;
-            const weeklyTraining = member.accountStatus === 'frozen' ? '-' : member.weeklyTraining;
-            const paymentMethod = member.accountStatus === 'frozen' ? '-' : member.paymentMethod;
-            const subscriptionValid = member.accountStatus === 'frozen' ? '-' : formatDate(member.subscriptionvalid);
-            const lastVisit = member.accountStatus === 'frozen' ? '-' : formatDate(member.lastVisit);
-            const paymentStatus = member.accountStatus === 'frozen' ? '-' : `<span class="${paymentStatusClass}">${paymentStatusHebrew}</span>`;
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${member.fullName}</td>
-                <td>${member.phone}</td>
-                <td>${member.email}</td>
-                <td>${membershipType}</td>
-                <td>${weeklyTraining}</td>
-                <td>${paymentMethod}</td>
-                <td>${subscriptionValid}</td>
-                <td>${lastVisit}</td>
-                <td>${paymentStatus}</td>
-                <td><span class="${subscriptionStatus.class}">${subscriptionStatus.text}</span></td>
-                <td class="action-buttons">
-                    <button class="edit-btn" onclick="editMember('${member._id}')">ערוך</button>
-                    <button class="delete-btn" onclick="deleteMember('${member._id}')">מחק</button>
-                    <button class="freeze-btn" onclick="freezeMember('${member._id}', '${member.accountStatus === 'frozen' ? 'active' : 'frozen'}')">
-                        ${member.accountStatus === 'frozen' ? 'הפשר מנוי' : 'הקפא מנוי'}
-                    </button>
-                </td>
-            `;
-            tableBody.appendChild(row);
-        });
     }
 
     // Function to filter members
@@ -162,72 +226,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     }
 
-    // Delete member function
-    window.deleteMember = async function(memberId) {
-        if (confirm('האם אתה בטוח שברצונך למחוק מתאמן זה?')) {
-            try {
-                const response = await fetch(`/api/members/${memberId}`, {
-                    method: 'DELETE'
-                });
-                
-                if (response.ok) {
-                    alert('המתאמן נמחק בהצלחה');
-                    loadMembers(); // Reload the list
-                } else {
-                    const error = await response.json();
-                    alert(`שגיאה במחיקת המתאמן: ${error.detail}`);
-                }
-            } catch (error) {
-                console.error('Error deleting member:', error);
-                alert('שגיאה במחיקת המתאמן');
-            }
-        }
+    // Keep only the viewMemberProfile function
+    window.viewMemberProfile = function(_id) {
+        window.location.href = `/member_profile?id=${_id}`;
     };
 
-    // Edit member function
-    window.editMember = function(memberId) {
-        // Store the member ID in session storage and redirect to edit page
-        sessionStorage.setItem('editMemberId', memberId);
-        window.location.href = `/enter_member/index.html?edit=true&id=${memberId}`;
-    };
-
-    // Add freeze member function
-    window.freezeMember = async function(memberId, newStatus) {
-        if (confirm(newStatus === 'frozen' ? 'האם אתה בטוח שברצונך להקפיא את המנוי?' : 'האם אתה בטוח שברצונך להפשיר את המנוי?')) {
-            try {
-                // Get the member's phone number first
-                const response = await fetch(`/api/members/${memberId}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch member data');
-                }
-                
-                const member = await response.json();
-                const phoneNumber = member.phone;
-                
-                // Update the member's account status
-                const updateResponse = await fetch(`/api/members/${phoneNumber}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        accountStatus: newStatus
-                    }),
-                });
-
-                if (updateResponse.ok) {
-                    alert(newStatus === 'frozen' ? 'המנוי הוקפא בהצלחה' : 'המנוי הופשר בהצלחה');
-                    loadMembers(); // Reload the members list
-                } else {
-                    const error = await updateResponse.json();
-                    alert(`שגיאה: ${error.detail || 'אירעה שגיאה בעת עדכון המנוי'}`);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('אירעה שגיאה בעת עדכון המנוי');
-            }
-        }
-    };
+    // IMPORTANT: Remove any other global functions that might be defined elsewhere
+    window.editMember = undefined;
+    window.deleteMember = undefined;
+    window.freezeMember = undefined;
 
     // Initial load
     loadMembers();

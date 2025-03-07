@@ -6,7 +6,7 @@ import pytz
 from typing import List, Optional
 from pymongo import MongoClient
 from bson import ObjectId
-from models.member import Member
+from models import Member
 from dotenv import load_dotenv
 
 import qrcode
@@ -15,7 +15,7 @@ import base64
 
 from io import BytesIO
 import base64
-from utils.send_email import EmailSender
+from utils import EmailSender
 from fastapi import HTTPException
 
 # Load environment variables
@@ -24,37 +24,6 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-def generate_qrcode(phone_number: str) -> str:
-    """Generate a QR code with phone number and return base64 string."""
-    try:
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4
-        )
-        
-        # Use phone number instead of member_id
-        qr.add_data(phone_number)
-        qr.make(fit=True)
-
-        # Create an image from the QR Code
-        img = qr.make_image(fill="black", back_color="white")
-
-        # Convert image to bytes
-        buffer = BytesIO()
-        img.save(buffer, format="PNG")
-        
-        # Convert to base64 for storage
-        qrcode_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-        
-        logger.info(f"✅ Generated QR code for phone number: {phone_number}")
-        return qrcode_base64
-
-    except Exception as e:
-        logger.error(f"❌ Error generating QR code: {e}")
-        raise e
 
 class MongoDB:
     def __init__(self):
@@ -90,45 +59,46 @@ class MongoDB:
     async def add_member(self, member: Member) -> dict:
         """Add a new member to the database and generate a QR code."""
         try:
-            
-            # Convert to Israel time
             israel_tz = pytz.timezone('Asia/Jerusalem')
             current_time_in_israel = datetime.now(israel_tz)
             formatted_time = current_time_in_israel.strftime('%Y-%m-%d')
             member_dict = member.dict()
             
-            # Set timestamps if not provided
+            # Set timestamps
             member_dict.setdefault("lastVisit", formatted_time)
             member_dict.setdefault("allVisits", [formatted_time])
-
-            # Insert the new member
+            
+            # Insert member first to get the ID
             result = self.members.insert_one(member_dict)
             member_id = str(result.inserted_id)
-
-            # Generate QR Code using phone number instead of ID
-            qrcode_base64 = generate_qrcode(member.phone)
-
-            # Update member in MongoDB with QR code
+            
+            # Generate QR Code with member_id instead of phone
+            qrcode_base64 = self.generate_qrcode(member_id)
+            
+            # Update the member with the QR code
             self.members.update_one(
-                {"_id": result.inserted_id},
+                {"_id": ObjectId(member_id)},
                 {"$set": {"qrcode_image": qrcode_base64}}
             )
+            
+            # For complex fields, still use appropriate defaults
+            member_dict.setdefault("attendance_stats", {
+                "total_visits": 0,
+                "avg_weekly_visits": 0,
+                "last_month_visits": 0
+            })
+            member_dict.setdefault("medical_info", {})
 
-            # For email, convert base64 back to bytes
+            # Send welcome email
             qrcode_bytes = base64.b64decode(qrcode_base64)
-
-            # Send welcome email with the QR Code
             email_sent = self.email_sender.send_welcome_email(
                 to_email=member.email,
                 member_name=member.fullName,
                 barcode_image=qrcode_bytes
             )
 
-            if not email_sent:
-                logger.warning(f"⚠️ Failed to send welcome email to {member.email}")
-
             return {
-                "id": member_id, 
+                "id": member_id,
                 "email_sent": email_sent,
                 "qrcode": qrcode_base64
             }
@@ -136,24 +106,38 @@ class MongoDB:
         except Exception as e:
             logger.error(f"❌ Error adding member: {e}")
             raise e
-                
-    async def get_member(self, phone: str) -> Optional[dict]:
-        """Retrieve a member by phone number, including their QR code."""
+
+    async def get_member_by_id(self, member_id: str):
         try:
+            from bson.objectid import ObjectId
+            # PyMongo's find_one is not a coroutine, so don't use await here
+            member = self.members.find_one({"_id": ObjectId(member_id)})
+            if member:
+                member["_id"] = str(member["_id"])  # Convert ObjectId to string
+                return member
+            return None
+        except Exception as e:
+            logger.error(f"❌ Error getting member by ID: {e}")
+            raise e
+
+    async def get_member_by_phone(self, phone: str):
+        try:
+            from bson.objectid import ObjectId
+            # PyMongo's find_one is not a coroutine, so don't use await here
             member = self.members.find_one({"phone": phone})
             if member:
-                member["_id"] = str(member["_id"])
-            return member
+                member["_id"] = str(member["_id"])  # Convert ObjectId to string
+                return member
+            return None
         except Exception as e:
-            logger.error(f"Error getting member: {e}")
+            logger.error(f"❌ Error getting member by phone: {e}")
             raise e
-        
-    async def update_member(self, phone_number: str, update_data: dict) -> bool:
+
+    async def update_member(self, member_id: str, update_data: dict) -> bool:
         """Update a member's information"""
-        # TODO: childern dosnt have id 
         try:
             result = self.members.update_one(
-                {"phone": phone_number},
+                {"_id": ObjectId(member_id)},  # Convert string ID to ObjectId
                 {"$set": update_data}
             )
             logger.info(f"✅ Member updated: {result.modified_count} fields updated")
@@ -176,11 +160,11 @@ class MongoDB:
             logger.error(f"Error deleting member: {e}")
             raise e
 
-    async def update_last_visit(self, phone_number: str) -> bool:
+    async def update_last_visit(self, member_id: str) -> bool:
         """Update member's last visit time"""
         try:
             result = self.members.update_one(
-                {"phone": phone_number},
+                {"_id": member_id},
                 {"$set": {"lastVisit": datetime.utcnow()}}
             )
             return result.modified_count > 0
@@ -201,32 +185,35 @@ class MongoDB:
             logger.error(f"❌ Error getting members: {e}")
             raise e
 
-    def generate_barcode(self, member_id: str) -> tuple[str, bytes]:
-        """Generate a barcode and return both the code and image bytes"""
+    def generate_qrcode(self, member_id: str) -> str:
+        """Generate a QR code with member_id and return base64 string."""
         try:
-            # Get the barcode class
-            EAN = barcode.get_barcode_class('code128')
-            ean = EAN(member_id, writer=ImageWriter())
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4
+            )
             
-            # Save barcode as an image
+            # Use member_id instead of phone number
+            qr.add_data(member_id)
+            qr.make(fit=True)
+
+            # Create an image from the QR Code
+            img = qr.make_image(fill="black", back_color="white")
+
+            # Convert image to bytes
             buffer = BytesIO()
-            ean.write(buffer)
+            img.save(buffer, format="PNG")
             
-            # Get the image bytes
-            buffer.seek(0)  # Reset buffer position to start
-            barcode_image = buffer.getvalue()
+            # Convert to base64 for storage
+            qrcode_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
             
-            # Get the barcode string
-            barcode_string = ean.get_fullcode()
-            
-            # Store base64 version in database
-            barcode_image_base64 = base64.b64encode(barcode_image).decode('utf-8')
-            
-            logger.info(f"✅ Generated barcode for member ID: {member_id}")
-            return barcode_string, barcode_image
+            logger.info(f"✅ Generated QR code for member ID: {member_id}")
+            return qrcode_base64
 
         except Exception as e:
-            logger.error(f"❌ Error generating barcode: {e}")
+            logger.error(f"❌ Error generating QR code: {e}")
             raise e
 
     async def delete_all_members(self) -> dict:
@@ -244,14 +231,14 @@ class MongoDB:
             logger.error(f"❌ Error deleting all members: {e}")
             raise e
 
-    async def scan_member_qr(self, phone_number: str) -> dict:
+    async def scan_member_qr(self, member_id: str) -> dict:
         """
-        Process a QR code scan for a member.
+        Process a QR code scan for a member using member_id.
         Returns the member data without updating the visit yet.
         """
         try:
             # Get the member data
-            member = await self.get_member(phone_number)
+            member = await self.get_member_by_id(member_id)
             
             if not member:
                 raise HTTPException(status_code=404, detail="Member not found")
@@ -261,13 +248,14 @@ class MongoDB:
             logger.error(f"Error scanning member QR: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Error scanning member QR: {str(e)}")
 
-    async def record_member_visit(self, phone_number: str) -> dict:
+    async def record_member_visit(self, member_id: str) -> dict:
         """
         Record a visit for a member after scanning their QR code.
+        Now uses member_id instead of phone number.
         """
         try:
             # Get the member data
-            member = await self.get_member(phone_number)
+            member = await self.get_member_by_id(member_id)
             
             if not member:
                 raise HTTPException(status_code=404, detail="Member not found")
@@ -288,13 +276,33 @@ class MongoDB:
             else:
                 update_data["allVisits"] = [current_time]
             
-            # Update the member record
-            result = await self.update_member(phone_number, update_data)
+            # Update the member record using ID
+            result = self.members.update_one(
+                {"_id": ObjectId(member_id)},
+                {"$set": update_data}
+            )
             
-            if not result:
+            if result.modified_count == 0:
                 raise HTTPException(status_code=500, detail="Failed to update member visit")
             
             return {"success": True, "message": "Visit recorded successfully"}
         except Exception as e:
             logger.error(f"Error recording member visit: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Error recording member visit: {str(e)}")
+
+    # Add function to get member QR code by ID
+    async def get_member_qrcode_by_id(self, member_id: str) -> dict:
+        try:
+            member = await self.get_member_by_id(member_id)
+            if not member:
+                raise ValueError("Member not found")
+            
+            return {
+                "qrcode": member.get("qrcode_image"),
+                "member_name": member.get("fullName")
+            }
+        except Exception as e:
+            logger.error(f"❌ Error retrieving QR code: {e}")
+            raise e
+
+

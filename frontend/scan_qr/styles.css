@@ -171,7 +171,7 @@ button:hover {
     border: 1px solid #ddd;
 }
 
-/* Mobile Responsiveness - Standardized */
+/* Enhanced Mobile Responsiveness */
 @media screen and (max-width: 768px) {
     .dashboard-container {
         flex-direction: column;
@@ -180,50 +180,174 @@ button:hover {
     .sidebar {
         width: 100%;
         margin-bottom: 20px;
+        padding: 10px;
+    }
+    
+    .sidebar nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .sidebar nav ul li {
+        margin: 0;
+        flex: 1;
+        min-width: 140px;
+        text-align: center;
     }
     
     .main-content {
         width: 100%;
-        padding: 15px;
+        padding: 10px;
     }
     
     .header {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-    
-    .container {
+        align-items: center;
+        text-align: center;
         padding: 15px;
     }
     
+    .logo {
+        margin-bottom: 10px;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
     .scanner-container {
-        flex-direction: column;
+        padding: 10px;
     }
     
     #reader {
         width: 100% !important;
         max-width: 100%;
+        height: auto !important;
     }
     
-    .result-container {
-        width: 100%;
-        margin-top: 20px;
+    #reader video {
+        max-height: 300px;
     }
     
-    .scan-again-btn {
-        width: 100%;
+    #reader__dashboard {
+        padding: 10px !important;
     }
-}
-
-/* For very small screens - Standardized */
-@media screen and (max-width: 480px) {
+    
     #reader__camera_selection {
         width: 100%;
+        margin: 10px 0;
     }
     
     .scan-result {
-        padding: 10px;
+        margin: 10px 0;
+        padding: 15px;
+    }
+    
+    .member-details {
+        font-size: 0.9rem;
+    }
+    
+    .scan-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .confirm-btn, .cancel-btn, .scan-again-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+    }
+}
+
+/* For very small screens */
+@media screen and (max-width: 480px) {
+    .sidebar h2 {
+        font-size: 1.2rem;
+    }
+    
+    .sidebar nav ul li a {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .page-title {
+        font-size: 1.2rem;
+    }
+    
+    .scan-result {
+        padding: 12px;
+    }
+    
+    .member-details {
+        font-size: 0.85rem;
+    }
+    
+    .warning-message,
+    .error-details {
+        font-size: 0.85rem;
+        padding: 8px;
+    }
+    
+    #reader__status_span {
+        font-size: 0.85rem !important;
+    }
+    
+    /* Improve touch targets */
+    .confirm-btn, .cancel-btn, .scan-again-btn {
+        padding: 14px;
+        font-size: 1.1rem;
+    }
+}
+
+/* Fix QR scanner UI on mobile */
+@media screen and (max-width: 768px) {
+    #reader__scan_region {
+        min-height: 300px !important;
+    }
+    
+    #reader__dashboard_section_swaplink {
+        font-size: 0.9rem !important;
+        padding: 8px !important;
+    }
+    
+    #reader__dashboard_section_csr button {
+        font-size: 0.9rem !important;
+        padding: 8px !important;
+        margin: 5px !important;
+    }
+    
+    /* Improve camera selection dropdown */
+    select:not(#reader__camera_selection) {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 5px 0 !important;
+        padding: 8px !important;
+        font-size: 0.9rem !important;
+    }
+}
+
+/* Add smooth transitions */
+.sidebar,
+.main-content,
+.scan-result,
+button {
+    transition: all 0.3s ease;
+}
+
+/* Improve loading states on mobile */
+@media screen and (max-width: 768px) {
+    #reader__loading_message {
+        font-size: 0.9rem !important;
+        padding: 10px !important;
+    }
+    
+    /* Center the QR region on mobile */
+    #reader__scan_region img {
+        max-width: 80% !important;
+        height: auto !important;
+        margin: 0 auto !important;
     }
 }
 
@@ -248,4 +372,80 @@ button:hover {
 
 .cancel-btn:hover {
     background-color: #5a6268;
-} 
+}
+
+/* Add these new styles */
+.warning-message {
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.error-details {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.scan-result {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.scan-result.success {
+    border-left: 5px solid #28a745;
+}
+
+.scan-result.error {
+    border-left: 5px solid #dc3545;
+}
+
+.member-details {
+    margin: 15px 0;
+    line-height: 1.6;
+}
+
+.scan-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+/* Update button styles */
+.confirm-btn, .cancel-btn, .scan-again-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.confirm-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.cancel-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.scan-again-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+.confirm-btn:hover { background-color: #218838; }
+.cancel-btn:hover { background-color: #5a6268; }
+.scan-again-btn:hover { background-color: #0056b3; } 

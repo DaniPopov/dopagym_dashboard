@@ -77,13 +77,15 @@ document.addEventListener('DOMContentLoaded', () => {
             subscriptionvalid: document.getElementById('subscriptionvalid').value, // 2025-10-03T10:00:00.000Z
             lastVisit: lastVisit, // 2025-03-03T10:00:00.000Z
             allVisits: allVisits, // [2025-03-03T10:00:00.000Z]
-            paymentStatus: "paid" // paid
+            paymentStatus: "paid", // paid
+            membershipStatus: "active" // active
         };
 
         console.log('Sending form data:', formData);
 
         try {
-            const response = await fetch('/api/v1/members/add-member', {
+            // Updated API endpoint to use the new standardized route
+            const response = await fetch('/api/v1/members/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -95,8 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
                 alert('מתאמן נרשם בהצלחה!');
                 registrationForm.reset();
-                // Optionally redirect to another page
-                // window.location.href = '/dashboard';
             } else {
                 const error = await response.json();
                 console.error('Server error:', error);

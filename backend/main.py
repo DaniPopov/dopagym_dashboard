@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI, Depends, Request, Cookie
+from fastapi import FastAPI, Depends, Request, Cookie, HTTPException
 from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 # Import routers
 from routers import members, scan, auth
 from routers.auth import verify_session_token
+from mongo_db import MongoDB
 
 app = FastAPI()
 
@@ -91,4 +92,6 @@ async def all_members():
 async def scan_qr():
     return FileResponse("/app/frontend/scan_qr/index.html")
 
-
+@app.get("/member_profile")
+async def member_profile():
+    return FileResponse("/app/frontend/member_profile/index.html")
