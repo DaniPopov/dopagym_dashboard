@@ -448,4 +448,90 @@ button {
 
 .confirm-btn:hover { background-color: #218838; }
 .cancel-btn:hover { background-color: #5a6268; }
-.scan-again-btn:hover { background-color: #0056b3; } 
+.scan-again-btn:hover { background-color: #0056b3; }
+
+/* Add these new styles */
+.loading-indicator {
+    text-align: center;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.loading-indicator::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border: 3px solid #87CEEB;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    text-align: center;
+}
+
+.scan-result {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.qr-reader {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#reader video {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+#reader__dashboard {
+    padding: 10px !important;
+}
+
+#reader__camera_selection {
+    width: 100%;
+    padding: 8px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#reader__dashboard_section_swaplink {
+    color: #007bff !important;
+}
+
+/* Improve scanner UI elements */
+#reader__scan_region {
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#reader__scan_region > img {
+    max-width: 100%;
+    height: auto;
+} 

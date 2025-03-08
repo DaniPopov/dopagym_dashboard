@@ -3,6 +3,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 import logging
+import traceback
+
 
 logger = logging.getLogger(__name__)
 
@@ -86,3 +88,4 @@ class EmailSender:
         except Exception as e:
             logger.error(f"❌ Failed to send welcome email: {str(e)}")
             return False
+

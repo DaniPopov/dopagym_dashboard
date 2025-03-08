@@ -7,14 +7,18 @@ from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_303_SEE_OTHER
 from starlette.middleware.base import BaseHTTPMiddleware
 
 # Import routers
-from routers import members, scan, auth
+from routers import members, auth
 from routers.auth import verify_session_token
 from mongo_db import MongoDB
+from scheduler import AccountStatusScheduler
 
 app = FastAPI()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Initialize account status scheduler
+scheduler = AccountStatusScheduler()
 
 # Authentication middleware
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -57,12 +61,25 @@ app.add_middleware(
 # Add auth middleware
 app.add_middleware(AuthMiddleware)
 
+# Start the scheduler on startup
+@app.on_event("startup")
+async def startup_event():
+    # Start the scheduler
+    scheduler.start()
+    logger.info("Application startup: Scheduler started")
+
+# Stop the scheduler on shutdown
+@app.on_event("shutdown")
+async def shutdown_event():
+    # Shutdown the scheduler
+    scheduler.scheduler.shutdown()
+    logger.info("Application shutdown: Scheduler stopped")
+
 # Mount the static files directory
 app.mount("/static", StaticFiles(directory="/app/frontend"), name="static")
 
 # Include routers
 app.include_router(members.router)
-app.include_router(scan.router)
 app.include_router(auth.router)
 
 # Login page - no auth required

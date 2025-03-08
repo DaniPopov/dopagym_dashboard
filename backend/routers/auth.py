@@ -11,8 +11,8 @@ router = APIRouter(prefix="/api/v1/auth", tags=["authentication"])
 sessions: Dict[str, Dict] = {}
 
 # This should be a dictionary with usernames as keys
-admin_username = "123"
-admin_password = "123"
+admin_username = "markpopov"
+admin_password = "q1e3w2r4"
 
 # Session expiration time (in seconds)
 SESSION_EXPIRY = 3600 * 24  # 24 hours

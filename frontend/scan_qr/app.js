@@ -46,12 +46,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // QR Scanner Configuration
-    const html5QrcodeScanner = new Html5QrcodeScanner(
+    let html5QrcodeScanner = new Html5QrcodeScanner(
         "reader",
         { 
             fps: 10, 
-            qrbox: { width: 250, height: 250 },
-            rememberLastUsedCamera: true
+            qrbox: { width: 300, height: 300 },
+            rememberLastUsedCamera: true,
+            aspectRatio: 1.0,
+            formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
         }
     );
 
@@ -72,31 +74,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         // Show loading state
-        resultContainer.innerHTML = '<p>מעבד את הנתונים...</p>';
+        resultContainer.innerHTML = '<div class="loading-indicator">מעבד את הנתונים...</div>';
         
-        // Call API to process the scan - now using member ID instead of phone number
+        // Call API to process the scan
         processScan(decodedText);
+    }
+
+    function onScanError(error) {
+        // Only log actual errors, not normal scanning process messages
+        if (error?.includes("No MultiFormat Readers") || 
+            error?.includes("No barcode or QR code detected")) {
+            return; // Ignore normal scanning process messages
+        }
+        console.warn(`QR Scan Error: ${error}`);
     }
 
     async function processScan(memberId) {
         try {
-            console.log("Member ID from QR code: ", memberId);
-            // Updated API endpoint to use member ID
-            const response = await fetch(`/api/v1/scan/scan-qr`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ member_id: memberId })
-            });
-            console.log("Response: ", response);
-            const data = await response.json();
-            console.log("Data: ", data);
+            console.log("Member ID from QR code:", memberId);
             
-            if (!response.ok) {
-                displayScanError(data.detail || 'מתאמן לא נמצא');
-                return;
+            // Validate member ID
+            if (!memberId || typeof memberId !== 'string') {
+                throw new Error('קוד QR לא תקין');
             }
+
+            // Make the API call
+            const response = await fetch(`/api/v1/members/id/${encodeURIComponent(memberId.trim())}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                if (response.status === 404) {
+                    throw new Error('מתאמן לא נמצא');
+                }
+                throw new Error(errorData.detail || 'שגיאה בעיבוד הסריקה');
+            }
+
+            const data = await response.json();
+            console.log("Member data:", data);
             
             // Check subscription and payment status
             const subscriptionStatus = checkSubscriptionStatus(data);
@@ -110,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
         } catch (error) {
             console.error('Error processing scan:', error);
-            displayScanError('אירעה שגיאה בעת עיבוד הסריקה');
+            displayScanError(error.message);
         }
     }
 
@@ -335,40 +354,25 @@ document.addEventListener('DOMContentLoaded', function () {
         const resultContainer = document.getElementById('scan-result');
         resultContainer.innerHTML = '';
         
-        // Reinitialize the scanner
-        html5QrcodeScanner = new Html5QrcodeScanner(
-            "qr-reader", { fps: 10, qrbox: 250 }
-        );
-        html5QrcodeScanner.render(onScanSuccess, onScanError);
-    }
-
-    function onScanError(error) {
-        // Check if the error is related to the QR code scanning
-        console.log(`QR error: ${error}`);
-        
-        // Don't try to update the UI for every scan error
-        // Only handle critical errors that require user attention
-        if (error.toString().includes("TypeError: Cannot set properties of null")) {
-            // Create the scan-result element if it doesn't exist
-            let resultContainer = document.getElementById('scan-result');
-            if (!resultContainer) {
-                resultContainer = document.createElement('div');
-                resultContainer.id = 'scan-result';
-                document.querySelector('.main-content').appendChild(resultContainer);
-            }
+        // Clear the existing scanner first
+        html5QrcodeScanner.clear().then(() => {
+            // Then create a new scanner instance
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader",
+                { 
+                    fps: 10, 
+                    qrbox: { width: 300, height: 300 },
+                    rememberLastUsedCamera: true,
+                    aspectRatio: 1.0,
+                    formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+                }
+            );
             
-            resultContainer.innerHTML = `
-                <div class="scan-result error">
-                    <h2>❌ שגיאה</h2>
-                    <p>אירעה שגיאה בעת סריקת הקוד. נא לנסות שוב.</p>
-                    <button id="scan-again-btn" class="scan-again-btn">סרוק שוב</button>
-                </div>
-            `;
-            
-            document.getElementById('scan-again-btn').addEventListener('click', () => {
-                resetScanner();
-            });
-        }
+            // Render the new scanner
+            html5QrcodeScanner.render(onScanSuccess, onScanError);
+        }).catch((err) => {
+            console.error("Failed to clear scanner:", err);
+        });
     }
 
     // Add a new function to handle cancellation
@@ -389,4 +393,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Render the scanner
     html5QrcodeScanner.render(onScanSuccess, onScanError);
+
+    // Add cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        html5QrcodeScanner.clear();
+    });
 }); 
