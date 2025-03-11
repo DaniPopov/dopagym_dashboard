@@ -28,7 +28,7 @@ async function loadDashboardData() {
         createClassDistributionChart(members);
         createWeeklyEntriesChart(members);
         updateExpiringMembershipsTable(members);
-        updateInactiveMembersTable(members);
+        updateFrozenMembersTable(members);
     } catch (error) {
         console.error('Error loading dashboard data:', error);
     }
@@ -195,22 +195,56 @@ function createWeeklyEntriesChart(members) {
 function updateExpiringMembershipsTable(members) {
     const tenDaysFromNow = new Date();
     tenDaysFromNow.setDate(tenDaysFromNow.getDate() + 10);
+    const today = new Date();
     
+    // Get members with expiring memberships or unpaid status
     const expiringMembers = members.filter(member => {
-        if (member.subscriptionvalid === '9999-12-12') return false; // Skip unlimited memberships
+        // Skip unlimited memberships
+        if (member.subscriptionvalid === '9999-12-12') return false;
+        
+        // Include members with unpaid payment status
+        if (member.paymentStatus === 'unpaid') return true;
+        
+        // Include members with expired or soon-to-expire memberships
         const expiryDate = new Date(member.subscriptionvalid);
-        return expiryDate <= tenDaysFromNow && expiryDate >= new Date();
+        return expiryDate <= tenDaysFromNow;
     });
 
     const tbody = document.querySelector('#expiring-memberships tbody');
-    tbody.innerHTML = expiringMembers.map(member => `
-        <tr>
-            <td>${member.fullName}</td>
-            <td>${member.phone}</td>
-            <td>${new Date(member.subscriptionvalid).toLocaleDateString('he-IL')}</td>
-            <td>${member.membershipType}</td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = expiringMembers.map(member => {
+        const expiryDate = new Date(member.subscriptionvalid);
+        const status = member.paymentStatus === 'unpaid' ? 'לא שולם' : 
+                      (expiryDate < today ? 'פג תוקף' : 'עומד לפוג');
+        
+        return `
+            <tr>
+                <td>${member.fullName}</td>
+                <td>${member.phone}</td>
+                <td>${new Date(member.subscriptionvalid).toLocaleDateString('he-IL')}</td>
+                <td>${member.membershipType}</td>
+                <td><span class="${status === 'לא שולם' ? 'status-unpaid' : 'status-expiring'}">${status}</span></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function updateFrozenMembersTable(members) {
+    // Get frozen members
+    const frozenMembers = members.filter(member => 
+        member.membershipStatus === 'frozen'
+    );
+
+    const tbody = document.querySelector('#frozen-members tbody');
+    tbody.innerHTML = frozenMembers.map(member => {
+        return `
+            <tr>
+                <td>${member.fullName}</td>
+                <td>${member.phone}</td>
+                <td>${member.lastVisit ? new Date(member.lastVisit).toLocaleDateString('he-IL') : 'לא זמין'}</td>
+                <td>${member.membershipType || 'לא זמין'}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function updateInactiveMembersTable(members) {

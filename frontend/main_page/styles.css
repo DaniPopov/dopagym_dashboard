@@ -298,3 +298,28 @@ tr:hover {
     }
 }
 
+/* Add these styles for the status indicators */
+.status-unpaid {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.status-expiring {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+/* Update the table badge for frozen members */
+.alert-table .table-badge {
+    background-color: #e6f7ff;
+    color: #2196F3;
+}
+
