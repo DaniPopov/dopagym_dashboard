@@ -133,14 +133,15 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log("Member data:", data);
             
             // Check subscription and payment status
-            const subscriptionStatus = checkSubscriptionStatus(data);
+            const membershipStatus = checkMembershipStatus(data);
+            console.log("Membership status:", membershipStatus);
             const paymentStatus = data.paymentStatus === 'paid';
             
             // Check weekly workout limit
             const workoutLimitCheck = checkWorkoutLimit(data);
             
             // Display the result
-            displayScanResult(data, subscriptionStatus, paymentStatus, workoutLimitCheck);
+            displayScanResult(data, membershipStatus, paymentStatus, workoutLimitCheck);
             
         } catch (error) {
             console.error('Error processing scan:', error);
@@ -148,9 +149,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function checkSubscriptionStatus(member) {
+    function checkMembershipStatus(member) {
         // Check if account is frozen
-        if (member.accountStatus === 'frozen') {
+        if (member.membershipStatus === 'frozen') {
             return {
                 valid: false,
                 message: 'המנוי מוקפא',
@@ -167,14 +168,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         // For cash payments, check if subscription date has passed
-        if (member.subscriptionvalid) {
-            const subscriptionDate = new Date(member.subscriptionvalid);
+        if (member.paymentMethod === 'מזומן') {
+            const membershipDate = new Date(member.subscriptionvalid);
             const today = new Date();
             
-            if (subscriptionDate > today) {
+            if (membershipDate > today) {
                 // Check if this is their last week
                 const oneWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-                if (subscriptionDate <= oneWeek) {
+                if (membershipDate <= oneWeek) {
                     return {
                         valid: true,
                         message: 'מנוי בתוקף',

@@ -426,6 +426,13 @@ function formatDate(dateString) {
 }
 
 async function freezeMember(memberId, newStatus) {
+    // TODO: If we freeze the member, for credit just freeze the account
+    // for cash, only freeze to two weeks minimun 
+    // example: shlomi has a payment until 1/5/2025, today is 11/3/2025 and he asked to freeze for 15 days
+    // --> + 15 days to payment date --> 16/3/2025 --> freeze until 16/3/2025
+
+    // example 2: mark asks to freeze for 9 days (minimum 2 weeks) we alert about it ()
+
     try {
         // Update only the membershipStatus field
         const response = await fetch(`/api/v1/members/id/${memberId}`, {
