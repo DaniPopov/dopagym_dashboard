@@ -97,7 +97,7 @@ function createClassDistributionChart(members) {
                         rtl: true,
                         labels: {
                             font: {
-                                size: 20 // Reduced font size
+                                size: 15 // Reduced font size
                             },
                             boxWidth: 15 // Smaller legend boxes
                         }
