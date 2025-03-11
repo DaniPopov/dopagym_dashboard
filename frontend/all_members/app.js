@@ -48,21 +48,16 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.innerHTML = '';
         
         members.forEach(member => {
-            const today = new Date();
-            
-            // Get subscription status based on new logic
-            const subscriptionStatus = getSubscriptionStatus(member);
-            
-            // Get payment status based on new logic
-            const paymentStatus = getPaymentStatus(member);
+            // Get statuses first
             
             // Display appropriate data based on account status
-            const membershipType = member.accountStatus === 'frozen' ? '-' : member.membershipType;
-            const weeklyTraining = member.accountStatus === 'frozen' ? '-' : member.weeklyTraining;
-            const paymentMethod = member.accountStatus === 'frozen' ? '-' : member.paymentMethod;
-            const subscriptionValid = member.accountStatus === 'frozen' ? '-' : formatDate(member.subscriptionvalid);
-            const lastVisit = member.accountStatus === 'frozen' ? '-' : formatDate(member.lastVisit);
-            
+            const membershipType = member.membershipStatus === 'frozen' ? '-' : member.membershipType;
+            const weeklyTraining = member.membershipStatus === 'frozen' ? '-' : member.weeklyTraining;
+            const paymentMethod = member.membershipStatus === 'frozen' ? '-' : member.paymentMethod;
+            const subscriptionValid = member.membershipStatus === 'frozen' ? '-' : formatDate(member.subscriptionvalid);
+            const lastVisit = member.membershipStatus === 'frozen' ? '-' : formatDate(member.lastVisit);
+            const paymentStatus = member.membershipStatus === 'frozen' ? '-' : getPaymentStatus(member);
+            const subscriptionStatus = member.membershipStatus === 'frozen' ? 'מנוי מוקפא' : getSubscriptionStatus(member);
             const row = document.createElement('tr');
             
             // Create each cell individually to avoid HTML injection issues
@@ -89,8 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const visitCell = document.createElement('td');
             visitCell.textContent = lastVisit;
-            
-            // Payment status cell
+
             const paymentCell = document.createElement('td');
             const paymentSpan = document.createElement('span');
             paymentSpan.className = paymentStatus.class;
@@ -162,9 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // New function to check payment status
     function getPaymentStatus(member) {
-        const today = new Date();
-        
-        // For credit card payments, always paid
         if (member.paymentMethod === 'אשראי') {
             return {
                 text: 'מנוי שולם',
@@ -172,28 +163,22 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
         
-        // For cash payments, check if subscription date has passed
-        if (member.subscriptionvalid) {
-            const subscriptionDate = new Date(member.subscriptionvalid);
-            
-            // If subscription date is in the future or today, it's paid
-            if (subscriptionDate >= today) {
-                return {
-                    text: 'מנוי שולם',
-                    class: 'status-paid'
-                };
-            } else {
-                // If subscription date has passed, it's not paid
-                return {
-                    text: 'מנוי לא שולם',
-                    class: 'status-due'
-                };
-            }
+        if (member.paymentStatus === 'paid') {
+            return {
+                text: 'מנוי שולם',
+                class: 'status-paid'
+            };
         }
         
-        // Default case
+        if (member.paymentStatus === 'unpaid') {      
+            return {
+                text: 'מנוי לא שולם',
+                class: 'status-due'
+            };
+        }
+        
         return {
-            text: 'מנוי לא שולם',
+            text: 'בדיקת תשלום',
             class: 'status-due'
         };
     }
@@ -220,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const date = new Date(dateString);
         // Check if date is valid
-        if (isNaN(date.getTime())) return 'לא זמין';
+        if (isNaN(date.getTime())) return 'לא הגבלה';
         
         // Format date as DD/MM/YYYY
         return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
@@ -233,8 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // IMPORTANT: Remove any other global functions that might be defined elsewhere
     window.editMember = undefined;
-    window.deleteMember = undefined;
-    window.freezeMember = undefined;
 
     // Initial load
     loadMembers();

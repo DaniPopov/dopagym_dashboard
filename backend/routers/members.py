@@ -76,6 +76,21 @@ async def update_member_by_id(member_id: str, update_data: dict):
         logger.error(f"❌ Error updating member: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.patch("/id/{member_id}")
+async def patch_member_by_id(member_id: str, update_data: dict):
+    """Update specific fields of a member by ID"""
+    try:
+        member = await db.get_member_by_id(member_id)
+        if not member:
+            raise HTTPException(status_code=404, detail="Member not found")
+        
+        success = await db.update_member(member_id, update_data)
+        if success:
+            return {"message": "Member updated successfully"}
+        raise HTTPException(status_code=500, detail="Failed to update member")
+    except Exception as e:
+        logger.error(f"❌ Error updating member: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/id/{member_id}")
 async def delete_member_by_id(member_id: str):

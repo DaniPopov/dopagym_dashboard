@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         
-        const newStatus = currentMember.accountStatus === 'frozen' ? 'active' : 'frozen';
+        const newStatus = currentMember.membershipStatus === 'frozen' ? 'active' : 'frozen';
         const confirmMessage = newStatus === 'frozen' ? 
             'האם אתה בטוח שברצונך להקפיא את המנוי?' : 
             'האם אתה בטוח שברצונך להפשיר את המנוי?';
@@ -231,8 +231,8 @@ function displayMemberData(member) {
     
     // Set status badges
     const membershipStatusElement = document.getElementById('membership-status');
-    membershipStatusElement.textContent = member.membershipStatus === 'active' ? 'מנוי פעיל' : 'מנוי לא פעיל';
-    membershipStatusElement.className = `status-badge ${member.membershipStatus === 'active' ? 'status-valid' : 'status-expired'}`;
+    membershipStatusElement.textContent = member.membershipStatus === 'active' ? 'מנוי פעיל' : 'מנוי מוקפא';
+    membershipStatusElement.className = `status-badge ${member.membershipStatus === 'active' ? 'status-valid' : 'status-frozen'}`;
     
     const paymentStatusElement = document.getElementById('payment-status');
     paymentStatusElement.textContent = member.paymentStatus === 'paid' ? 'מנוי שולם' : 'מנוי לא שולם';
@@ -291,10 +291,10 @@ function displayMemberData(member) {
     const visitsThisWeek = calculateVisitsThisWeek(member.allVisits || []);
     document.getElementById('visits-this-week').textContent = visitsThisWeek;
 
-    // Update freeze button text based on account status
+    // Update freeze button text based on membership status
     const freezeBtn = document.getElementById('freeze-member-btn');
     if (freezeBtn) {
-        freezeBtn.textContent = member.accountStatus === 'frozen' ? 'הפשר מנוי' : 'הקפא מנוי';
+        freezeBtn.textContent = member.membershipStatus === 'frozen' ? 'הפשר מנוי' : 'הקפא מנוי';
     }
 }
 
@@ -427,14 +427,14 @@ function formatDate(dateString) {
 
 async function freezeMember(memberId, newStatus) {
     try {
-        // Update the member's account status using the ID endpoint
+        // Update only the membershipStatus field
         const response = await fetch(`/api/v1/members/id/${memberId}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                accountStatus: newStatus
+                'membershipStatus': newStatus  // 'frozen' or 'active'
             }),
         });
 
@@ -473,12 +473,12 @@ function downloadQRCode(member) {
 async function updateMemberNotes(memberId, notes) {
     try {
         const response = await fetch(`/api/v1/members/id/${memberId}`, {
-            method: 'PUT',
+            method: 'PATCH',  // Changed to PATCH for partial update
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                notes: notes
+                'notes': notes
             }),
         });
 
