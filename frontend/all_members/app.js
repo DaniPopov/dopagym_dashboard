@@ -48,16 +48,27 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.innerHTML = '';
         
         members.forEach(member => {
-            // Get statuses first
+            // Get subscription status first
+            const subscriptionStatus = getSubscriptionStatus(member);
             
-            // Display appropriate data based on account status
+            // Display appropriate data based on membership status
             const membershipType = member.membershipStatus === 'frozen' ? '-' : member.membershipType;
             const weeklyTraining = member.membershipStatus === 'frozen' ? '-' : member.weeklyTraining;
             const paymentMethod = member.membershipStatus === 'frozen' ? '-' : member.paymentMethod;
             const subscriptionValid = member.membershipStatus === 'frozen' ? '-' : formatDate(member.subscriptionvalid);
             const lastVisit = member.membershipStatus === 'frozen' ? '-' : formatDate(member.lastVisit);
-            const paymentStatus = member.membershipStatus === 'frozen' ? '-' : getPaymentStatus(member);
-            const subscriptionStatus = member.membershipStatus === 'frozen' ? 'מנוי מוקפא' : getSubscriptionStatus(member);
+            
+            // For payment status, create a proper object even when frozen
+            let paymentStatus;
+            if (member.membershipStatus === 'frozen') {
+                paymentStatus = {
+                    text: '-',
+                    class: ''  // Empty class for frozen members' payment status
+                };
+            } else {
+                paymentStatus = getPaymentStatus(member);
+            }
+            
             const row = document.createElement('tr');
             
             // Create each cell individually to avoid HTML injection issues
@@ -131,8 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Updated function to check subscription status
     function getSubscriptionStatus(member) {
-        // Check if account is frozen
-        if (member.accountStatus === 'frozen') {
+        // Check if membership is frozen
+        if (member.membershipStatus === 'frozen') {
             return {
                 text: 'מנוי מוקפא',
                 class: 'status-frozen'
@@ -140,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Check if account is deactivated
-        if (member.accountStatus === 'inactive') {
+        if (member.membershipStatus === 'inactive') {
             return {
                 text: 'מנוי לא בתוקף',
                 class: 'status-expired'
@@ -163,19 +174,25 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
         
-        if (member.paymentStatus === 'paid') {
+        if (member.paymentStatus === 'paid' && member.membershipStatus === 'active') {
+            return {
+                text: 'מנוי שולם',
+                class: 'status-paid'
+            };
+        }
+
+        if (member.paymentStatus === 'paid' && member.membershipStatus === 'frozen') {
             return {
                 text: 'מנוי שולם',
                 class: 'status-paid'
             };
         }
         
-        if (member.paymentStatus === 'unpaid') {      
+        if (member.paymentStatus === 'unpaid')      
             return {
                 text: 'מנוי לא שולם',
                 class: 'status-due'
             };
-        }
         
         return {
             text: 'בדיקת תשלום',

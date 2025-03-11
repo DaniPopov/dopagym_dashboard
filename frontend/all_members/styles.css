@@ -161,9 +161,9 @@ body {
     font-weight: bold;
 }
 
-.status-unlimited {
-    background-color: #cce5ff;
-    color: #004085;
+.status-frozen {
+    background-color: #d7eff8;
+    color: #2196F3;
     padding: 5px 10px;
     border-radius: 4px;
     font-weight: bold;
@@ -217,32 +217,6 @@ body {
     #members-table td {
         padding: 8px 5px;
     }
-}
-
-/* Make sure these status classes are defined */
-.status-paid {
-    color: green;
-    font-weight: bold;
-}
-
-.status-due {
-    color: red;
-    font-weight: bold;
-}
-
-.status-valid {
-    color: green;
-    font-weight: bold;
-}
-
-.status-expired {
-    color: red;
-    font-weight: bold;
-}
-
-.status-frozen {
-    color: #2196F3;
-    font-weight: bold;
 }
 
 /* Reset any existing button styles */
