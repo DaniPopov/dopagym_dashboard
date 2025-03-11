@@ -50,10 +50,14 @@ document.addEventListener('DOMContentLoaded', function () {
         "reader",
         { 
             fps: 10, 
-            qrbox: { width: 300, height: 300 },
+            qrbox: { width: 250, height: 250 },  // Smaller size for mobile
             rememberLastUsedCamera: true,
             aspectRatio: 1.0,
-            formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+            formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true  // Better for mobile
+            }
         }
     );
 
@@ -81,12 +85,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function onScanError(error) {
-        // Only log actual errors, not normal scanning process messages
+        // Log all errors during development
+        console.log(`QR Scan Error (full): ${error}`);
+        
+        // Only show relevant errors to user
         if (error?.includes("No MultiFormat Readers") || 
             error?.includes("No barcode or QR code detected")) {
             return; // Ignore normal scanning process messages
         }
-        console.warn(`QR Scan Error: ${error}`);
+        
+        // Check for permission errors
+        if (error?.includes("Permission") || error?.includes("denied")) {
+            displayScanError("נדרשת הרשאה לשימוש במצלמה. אנא אשר את ההרשאה בדפדפן.");
+        } else if (error?.includes("camera")) {
+            displayScanError("לא ניתן לגשת למצלמה. אנא ודא שהמצלמה פנויה ומופעלת.");
+        } else {
+            console.warn(`QR Scan Error: ${error}`);
+        }
     }
 
     async function processScan(memberId) {
@@ -361,10 +376,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 "reader",
                 { 
                     fps: 10, 
-                    qrbox: { width: 300, height: 300 },
+                    qrbox: { width: 250, height: 250 },  // Smaller size for mobile
                     rememberLastUsedCamera: true,
                     aspectRatio: 1.0,
-                    formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+                    formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
+                    supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+                    experimentalFeatures: {
+                        useBarCodeDetectorIfSupported: true  // Better for mobile
+                    }
                 }
             );
             
@@ -391,8 +410,55 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Render the scanner
-    html5QrcodeScanner.render(onScanSuccess, onScanError);
+    // Add this function before rendering the scanner
+    async function startScanner() {
+        try {
+            // Get available cameras
+            const devices = await Html5Qrcode.getCameras();
+            
+            if (devices && devices.length) {
+                // On mobile, prefer the back camera
+                let cameraId = devices[0].id;
+                
+                // Try to find back camera
+                const backCamera = devices.find(camera => 
+                    camera.label.toLowerCase().includes('back') || 
+                    camera.label.toLowerCase().includes('rear')
+                );
+                
+                if (backCamera) {
+                    cameraId = backCamera.id;
+                }
+                
+                // Initialize scanner with specific camera
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "reader",
+                    { 
+                        fps: 10, 
+                        qrbox: { width: 250, height: 250 },
+                        rememberLastUsedCamera: true,
+                        defaultDeviceId: cameraId,
+                        aspectRatio: 1.0,
+                        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+                    }
+                );
+                
+                // Render the scanner
+                html5QrcodeScanner.render(onScanSuccess, onScanError);
+                
+                console.log("Scanner started with camera:", cameraId);
+            } else {
+                console.error("No cameras found");
+                displayScanError("לא נמצאו מצלמות במכשיר");
+            }
+        } catch (error) {
+            console.error("Error starting scanner:", error);
+            displayScanError("שגיאה בהפעלת הסורק: " + error.message);
+        }
+    }
+
+    // Replace the direct render call with startScanner()
+    startScanner();
 
     // Add cleanup on page unload
     window.addEventListener('beforeunload', () => {

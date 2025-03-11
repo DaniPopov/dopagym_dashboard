@@ -223,12 +223,14 @@ button:hover {
     
     #reader {
         width: 100% !important;
-        max-width: 100%;
+        max-width: 300px !important;
         height: auto !important;
+        margin: 0 auto;
     }
     
     #reader video {
-        max-height: 300px;
+        max-height: 300px !important;
+        object-fit: cover !important;
     }
     
     #reader__dashboard {
@@ -258,6 +260,11 @@ button:hover {
         width: 100%;
         padding: 12px;
         font-size: 1rem;
+    }
+    
+    /* Fix for iOS Safari */
+    #reader__scan_region {
+        transform: translateZ(0);
     }
 }
 
