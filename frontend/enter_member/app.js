@@ -63,6 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (workoutToday === 'yes') {
             lastVisit = new Date().toISOString();
             allVisits = [lastVisit];
+        } else {
+            // If not working out today, set lastVisit to empty string instead of null
+            lastVisit = '';
         }
         
         const formData = {
@@ -75,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             weeklyTraining: document.getElementById('weeklyTraining').value, // 250 ש״ח אימון בשבוע
             paymentMethod: document.getElementById('paymentMethod').value, // מזומן
             subscriptionvalid: document.getElementById('subscriptionvalid').value, // 2025-10-03T10:00:00.000Z
-            lastVisit: lastVisit, // 2025-03-03T10:00:00.000Z
+            lastVisit: lastVisit,  // This will now be either an ISO string or empty string
             allVisits: allVisits, // [2025-03-03T10:00:00.000Z]
             paymentStatus: "paid", // paid
             membershipStatus: "active" // active
