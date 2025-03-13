@@ -17,14 +17,14 @@ class AccountStatusScheduler:
         # Run at specified times for testing
         self.scheduler.add_job(
             self._run_payment_status_update,  # Use wrapper function
-            CronTrigger(hour=16, minute=55),
+            CronTrigger(hour=00, minute=00),
             id="update_payment_status",
             replace_existing=True
         )
 
         self.scheduler.add_job(
             self._run_inactive_accounts_update,  # Use wrapper function
-            CronTrigger(hour=16, minute=56),
+            CronTrigger(hour=00, minute=10),
             id="update_inactive_accounts",
             replace_existing=True
         )
