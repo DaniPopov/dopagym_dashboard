@@ -20,8 +20,8 @@ class Member(BaseModel):
     weeklyTraining: str
     paymentMethod: str
     subscriptionvalid: str
-    lastVisit: str
-    allVisits: List[str]
+    lastVisit: Optional[str] = None  # Make lastVisit optional with None as default
+    allVisits: List[str] = []  # Make allVisits optional with empty list as default
     paymentStatus: str
     membershipStatus: str
     qrcode_image: Optional[str] = None  # Base64 QR code image

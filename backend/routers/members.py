@@ -15,16 +15,11 @@ logger = logging.getLogger(__name__)
 async def add_member(member: Member):
     """Add a new member to the database"""
     try:
-        # Basic validation
-        if not member.phone or not member.fullName:
-            raise HTTPException(status_code=400, detail="שם מלא ומספר טלפון הם שדות חובה")
+        # Basic validation - only check for required fields
+        if not member.fullName:
+            raise HTTPException(status_code=400, detail="שם מלא הוא שדה חובה")
         
-        # Check if phone number already exists
-        existing_member = await db.get_member_by_phone(member.phone)
-        if existing_member:
-            raise HTTPException(status_code=400, detail="מספר טלפון זה כבר קיים במערכת")
-
-        # Add member
+        # Add member without checking for existing phone number
         result = await db.add_member(member)
         logger.info(f"✅ Member added: {member}")
         return {"message": "Member added successfully", "id": result.get("id")}

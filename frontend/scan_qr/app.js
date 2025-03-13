@@ -210,6 +210,8 @@ document.addEventListener('DOMContentLoaded', function () {
             allowedWorkoutsPerWeek = 2;
         } else if (member.weeklyTraining.includes('450')) {
             allowedWorkoutsPerWeek = 3;
+        } else if (member.weeklyTraining.includes('550')) {
+            allowedWorkoutsPerWeek = 999;
         }
         
         // Get start of current week (Sunday)

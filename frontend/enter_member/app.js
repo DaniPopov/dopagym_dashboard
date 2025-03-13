@@ -64,30 +64,28 @@ document.addEventListener('DOMContentLoaded', () => {
             lastVisit = new Date().toISOString();
             allVisits = [lastVisit];
         } else {
-            // If not working out today, set lastVisit to empty string instead of null
-            lastVisit = '';
+            // If not working out today, both lastVisit and allVisits should remain empty
+            lastVisit = null;
+            allVisits = [];
         }
         
         const formData = {
-            fullName: document.getElementById('fullName').value, // dani popov
-            idNumber: document.getElementById('idNumber').value, // 123456789
-            phone: document.getElementById('phone').value, // 0501234567
-            email: document.getElementById('email').value, // dani@gmail.com
-            birthDate: document.getElementById('birthDate').value, // 2025-10-03T10:00:00.000Z
-            membershipType: document.getElementById('membershipType').value, // היאבקות נוער
-            weeklyTraining: document.getElementById('weeklyTraining').value, // 250 ש״ח אימון בשבוע
-            paymentMethod: document.getElementById('paymentMethod').value, // מזומן
-            subscriptionvalid: document.getElementById('subscriptionvalid').value, // 2025-10-03T10:00:00.000Z
-            lastVisit: lastVisit,  // This will now be either an ISO string or empty string
-            allVisits: allVisits, // [2025-03-03T10:00:00.000Z]
-            paymentStatus: "paid", // paid
-            membershipStatus: "active" // active
+            fullName: document.getElementById('fullName').value,
+            idNumber: document.getElementById('idNumber').value,
+            phone: document.getElementById('phone').value,
+            email: document.getElementById('email').value,
+            birthDate: document.getElementById('birthDate').value,
+            membershipType: document.getElementById('membershipType').value,
+            weeklyTraining: document.getElementById('weeklyTraining').value,
+            paymentMethod: document.getElementById('paymentMethod').value,
+            subscriptionvalid: document.getElementById('subscriptionvalid').value,
+            lastVisit: lastVisit,
+            allVisits: allVisits,
+            paymentStatus: "paid",
+            membershipStatus: "active"
         };
 
-        console.log('Sending form data:', formData);
-
         try {
-            // Updated API endpoint to use the new standardized route
             const response = await fetch('/api/v1/members/', {
                 method: 'POST',
                 headers: {
@@ -99,7 +97,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const result = await response.json();
                 alert('מתאמן נרשם בהצלחה!');
+                // Proper form reset
                 registrationForm.reset();
+                // Reset additional fields and states
+                subscriptionValidField.disabled = true;
+                subscriptionValidField.value = '';
+                // Reset any select elements to their first option
+                document.getElementById('membershipType').selectedIndex = 0;
+                document.getElementById('weeklyTraining').selectedIndex = 0;
+                document.getElementById('paymentMethod').selectedIndex = 0;
+                document.getElementById('workoutToday').selectedIndex = 0;
             } else {
                 const error = await response.json();
                 console.error('Server error:', error);
