@@ -35,6 +35,10 @@
             <section class="search-section">
                 <input type="text" id="search-input" placeholder="חיפוש מתאמן...">
             </section>
+            
+            <div class="add-member-btn">
+                <button id="add-member-btn">הוסף מתאמן</button>
+            </div>
 
             <!-- Members Table -->
             <section class="members-table-container">
@@ -43,10 +47,10 @@
                         <tr>
                             <th>שם מלא</th>
                             <th>טלפון</th>
+                            <th>טלפון 2</th>
                             <th>סוג מנוי</th>
-                            <th>מספר אימונים בשבוע</th>
                             <th>אופן תשלום</th>
-                            <th>תוקף מנוי</th>
+                            <th>תוקף תשלום</th>
                             <th>סטטוס תשלום</th>
                             <th>פעולות</th>
                         </tr>
@@ -58,6 +62,60 @@
             </section>
         </main>
     </div>
+
+    <!-- Edit/Add Member Modal -->
+    <div id="member-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title">ערוך פרטי מתאמן</h2>
+            <form id="member-form">
+                <input type="hidden" id="member-id" name="member_id">
+                <div class="form-group">
+                    <label for="edit-name">שם מלא:</label>
+                    <input type="text" id="edit-name" name="fullName" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-phone">מספר טלפון:</label>
+                    <input type="tel" id="edit-phone" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-phone2">מספר טלפון 2:</label>
+                    <input type="tel" id="edit-phone2" name="phone2">
+                </div>
+                <div class="form-group">
+                    <label for="edit-membership-type">סוג מנוי:</label>
+                    <select id="edit-membership-type" name="type_membership">
+                        <option value="היאבקות ">היאבקות</option>
+                        <option value="איגרוף ">איגרוף</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-payment-method">אופן תשלום:</label>
+                    <select id="edit-payment-method" name="payment_method">
+                        <option value="מזומן">מזומן</option>
+                        <option value="אשראי">אשראי</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-subscription-valid">תוקף מנוי:</label>
+                    <input type="date" id="edit-subscription-valid" name="payment_date">
+                </div>
+                <div class="form-group">
+                    <label for="edit-payment-status">תוקף תשלום:</label>
+                    <select id="edit-payment-status" name="paymentStatus">
+                        <option value="paid">שולם</option>
+                        <option value="unpaid">לא שולם</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" id="save-btn" class="action-btn save-btn">שמור</button>
+                    <button type="button" id="cancel-btn" class="action-btn cancel-btn">בטל</button>
+                    <button type="button" id="delete-btn" class="action-btn delete-btn">מחק מתאמן</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <script src="/static/bat_yam/app.js"></script>
 </body>
 </html>

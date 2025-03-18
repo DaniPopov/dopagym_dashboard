@@ -1,18 +1,18 @@
 from fastapi import APIRouter, HTTPException
 import logging
-from models import Member
-from mongo_db import MongoOrYehuda
+from models import Member_BatYam
+from mongo_batyam import MongoBatYam
 from fastapi.responses import JSONResponse
 from bson.objectid import ObjectId
 
-router = APIRouter(prefix="/api/v1/members", tags=["members"])
-db = MongoOrYehuda()
+router = APIRouter(prefix="/api/v1/members_batyam", tags=["members_batyam"])
+db = MongoBatYam()
 logger = logging.getLogger(__name__)
 
 
 
 @router.post("/")
-async def add_member(member: Member):
+async def add_member(member: Member_BatYam):
     """Add a new member to the database"""
     try:
         # Basic validation - only check for required fields
@@ -21,12 +21,12 @@ async def add_member(member: Member):
         
         # Add member without checking for existing phone number
         result = await db.add_member(member)
-        logger.info(f"✅ Member added: {member}")
+        logger.info(f"✅ Member added at Mongo Bat Yam: {member}")
         return {"message": "Member added successfully", "id": result.get("id")}
     except HTTPException as he:
         raise he
     except Exception as e:
-        logger.error(f"❌ Error adding member: {e}")
+        logger.error(f"❌ Error adding member at Mongo Bat Yam: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/")
@@ -34,10 +34,10 @@ async def get_all_members():
     """Get all members from the database"""
     try:
         members = await db.get_all_members()
-        logger.info(f"✅ All members found: {len(members)} members")
+        logger.info(f"✅ All members found at Mongo Bat Yam: {len(members)} members")
         return members
     except Exception as e:
-        logger.error(f"❌ Error getting all members: {e}")
+        logger.error(f"❌ Error getting all members at Mongo Bat Yam: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/id/{member_id}")
@@ -113,22 +113,4 @@ async def delete_all_members():
             detail=f"Failed to delete all members: {str(e)}"
         )
 
-@router.get("/qrcode/id/{member_id}")
-async def get_member_qrcode_by_id(member_id: str):
-    """Get a member's QR code by ID"""
-    try:
-        qr_data = await db.get_member_qrcode_by_id(member_id)
-        return JSONResponse(content=qr_data)
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-
-@router.post("/visit/id/{member_id}")
-async def record_visit_by_id(member_id: str):
-    """Record a visit for a member by ID"""
-    try:
-        result = await db.record_member_visit(member_id)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 

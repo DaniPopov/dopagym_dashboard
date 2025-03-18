@@ -1,275 +1,476 @@
-// No need to duplicate the auth check since it's in auth.js now
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', () => {
     // Sidebar Navigation
-    setupNavigation();
-    
-    // Load and display all data
-    await loadDashboardData();
-});
-
-function setupNavigation() {
     const homeBtn = document.getElementById('home-btn');
     const scanBarcodeBtn = document.getElementById('scan-barcode-btn');
     const registerBtn = document.getElementById('register-btn');
     const allTraineesBtn = document.getElementById('all-trainees-btn');
     const batYamBtn = document.getElementById('bat-yam-btn');
+    
+    homeBtn.addEventListener('click', () => {
+        window.location.href = '/main_page';
+    });
+    
+    scanBarcodeBtn.addEventListener('click', () => {
+        window.location.href = '/scan_qr';
+    });
+    
+    registerBtn.addEventListener('click', () => {
+        window.location.href = '/enter_member';
+    });
+    
+    allTraineesBtn.addEventListener('click', () => {
+        window.location.href = '/all_members';
+    });
 
-    homeBtn.addEventListener('click', () => window.location.href = '/main_page');
-    scanBarcodeBtn.addEventListener('click', () => window.location.href = '/scan_qr');
-    registerBtn.addEventListener('click', () => window.location.href = '/enter_member');
-    allTraineesBtn.addEventListener('click', () => window.location.href = '/all_members');
-    batYamBtn.addEventListener('click', () => window.location.href = '/bat_yam');
-}
+    batYamBtn.addEventListener('click', () => {
+        window.location.href = '/bat_yam';
+    });
+    
+    // Search functionality
+    const searchInput = document.getElementById('search-input');
+    searchInput.addEventListener('input', filterMembers);
 
-async function loadDashboardData() {
-    try {
-        const response = await fetch('/api/v1/members/');
-        const members = await response.json();
+    // Modal elements
+    const memberModal = document.getElementById('member-modal');
+    const closeModalBtn = document.querySelector('.close');
+    const memberForm = document.getElementById('member-form');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const modalTitle = document.getElementById('modal-title');
+
+    let allMembers = []; // Store all members for filtering
+
+    // Add member button click handler
+    const addMemberBtn = document.getElementById('add-member-btn');
+    addMemberBtn.addEventListener('click', () => {
+        openAddMemberModal();
+    });
+
+    // Close modal when clicking the X
+    closeModalBtn.addEventListener('click', () => {
+        memberModal.style.display = 'none';
+    });
+
+    // Close modal when clicking the cancel button
+    cancelBtn.addEventListener('click', () => {
+        memberModal.style.display = 'none';
+    });
+
+    // Close modal when clicking outside of it
+    window.addEventListener('click', (event) => {
+        if (event.target === memberModal) {
+            memberModal.style.display = 'none';
+        }
+    });
+
+    // Handle payment method changes
+    const paymentMethodSelect = document.getElementById('edit-payment-method');
+    const subscriptionValidField = document.getElementById('edit-subscription-valid');
+    
+    paymentMethodSelect.addEventListener('change', function() {
+        if (this.value === 'מזומן') {
+            // For cash payment, enable the field for manual date entry
+            subscriptionValidField.disabled = false;
+            subscriptionValidField.value = subscriptionValidField.value || '';
+        } else if (this.value === 'אשראי') {
+            // For credit card payment, set a constant far future date and disable the field
+            subscriptionValidField.disabled = true;
+            subscriptionValidField.value = '9999-12-12';
+        } else {
+            // If no payment method is selected, disable the field
+            subscriptionValidField.disabled = true;
+            subscriptionValidField.value = '';
+        }
+    });
+
+    // Form submission handler
+    memberForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
-        updateStats(members);
-        createClassDistributionChart(members);
-        createWeeklyEntriesChart(members);
-        updateExpiringMembershipsTable(members);
-        updateFrozenMembersTable(members);
-    } catch (error) {
-        console.error('Error loading dashboard data:', error);
-    }
-}
-
-function updateStats(members) {
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Count today's entries
-    const todayEntries = members.filter(member => 
-        member.lastVisit && member.lastVisit.startsWith(today)
-    ).length;
-    
-    // Count active members
-    const activeMembers = members.filter(member => 
-        member.membershipStatus === 'active'
-    ).length;
-    
-    document.getElementById('today-entries').textContent = todayEntries;
-    document.getElementById('total-members').textContent = members.length;
-    document.getElementById('active-members').textContent = activeMembers;
-}
-
-function createClassDistributionChart(members) {
-    try {
-        const canvas = document.getElementById('class-distribution');
-        if (!canvas) {
-            console.error('Cannot find class-distribution canvas');
-            return;
-        }
-
-        // Clear any existing chart
-        if (canvas.chart) {
-            canvas.chart.destroy();
-        }
-
-        const classTypes = {};
-        members.forEach(member => {
-            if (member.membershipType) {
-                classTypes[member.membershipType] = (classTypes[member.membershipType] || 0) + 1;
+        const formData = new FormData(memberForm);
+        const memberId = document.getElementById('member-id').value;
+        const isNewMember = !memberId;
+        
+        // Convert FormData to JSON object
+        const memberData = {};
+        formData.forEach((value, key) => {
+            // Map frontend field names to backend field names
+            if (key === 'membershipType') {
+                memberData['type_membership'] = value;
+            } else if (key === 'paymentMethod') {
+                memberData['payment_method'] = value;
+            } else if (key === 'subscriptionvalid') {
+                memberData['payment_date'] = value;
+            } else if (key === 'paymentStatus') {
+                memberData['payment_status'] = value;
+            } else {
+                memberData[key] = value;
             }
         });
-
-        const ctx = canvas.getContext('2d');
-        canvas.chart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: Object.keys(classTypes),
-                datasets: [{
-                    data: Object.values(classTypes),
-                    backgroundColor: [
-                        '#FF6384',
-                        '#36A2EB',
-                        '#FFCE56',
-                        '#4BC0C0',
-                        '#9966FF'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        rtl: true,
-                        labels: {
-                            font: {
-                                size: 15 // Reduced font size
-                            },
-                            boxWidth: 15 // Smaller legend boxes
-                        }
-                    }
-                }
-            }
-        });
-    } catch (error) {
-        console.error('Error creating class distribution chart:', error);
-    }
-}
-
-function createWeeklyEntriesChart(members) {
-    try {
-        const canvas = document.getElementById('weekly-entries');
-        if (!canvas) {
-            console.error('Cannot find weekly-entries canvas');
-            return;
-        }
-
-        // Clear any existing chart
-        if (canvas.chart) {
-            canvas.chart.destroy();
-        }
-
-        const days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
-        const entriesPerDay = new Array(6).fill(0);
         
-        const today = new Date();
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - today.getDay());
-
-        members.forEach(member => {
-            if (member.allVisits) {
-                member.allVisits.forEach(visit => {
-                    const visitDate = new Date(visit);
-                    if (visitDate >= weekStart && visitDate.getDay() < 6) {
-                        entriesPerDay[visitDate.getDay()]++;
-                    }
+        // Check payment date for status
+        if (memberData.payment_method === 'אשראי') {
+            // Credit card payments are always "paid"
+            memberData.payment_status = 'paid';
+        } else if (memberData.payment_date) {
+            const paymentDate = new Date(memberData.payment_date);
+            // Set both dates to beginning of day for accurate comparison
+            paymentDate.setHours(0, 0, 0, 0);
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // If payment date is today or in the future, mark as paid
+            if (paymentDate >= today) {
+                memberData.payment_status = 'paid';
+            } else {
+                memberData.payment_status = 'unpaid';
+            }
+        }
+        
+        try {
+            let response;
+            let url;
+            
+            if (isNewMember) {
+                // Creating a new member
+                url = '/api/v1/members_batyam/';
+                response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(memberData)
+                });
+            } else {
+                // Updating an existing member
+                url = `/api/v1/members_batyam/id/${memberId}`;
+                response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(memberData)
                 });
             }
-        });
-
-        const ctx = canvas.getContext('2d');
-        canvas.chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: days,
-                datasets: [{
-                    label: 'כניסות',
-                    data: entriesPerDay,
-                    backgroundColor: '#36A2EB'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            font: {
-                                size: 11 // Reduced font size
-                            }
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            font: {
-                                size: 11 // Reduced font size
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        rtl: true,
-                        labels: {
-                            font: {
-                                size: 12 // Reduced font size
-                            },
-                            boxWidth: 15 // Smaller legend boxes
-                        }
-                    }
-                }
+            
+            if (response.ok) {
+                alert(isNewMember ? 'מתאמן נוסף בהצלחה' : 'פרטי המתאמן עודכנו בהצלחה');
+                memberModal.style.display = 'none';
+                loadMembers(); // Reload the members list
+            } else {
+                const error = await response.json();
+                alert(`שגיאה: ${error.detail || 'אירעה שגיאה בעת עדכון פרטי המתאמן'}`);
             }
-        });
-    } catch (error) {
-        console.error('Error creating weekly entries chart:', error);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('אירעה שגיאה בעת שמירת פרטי המתאמן');
+        }
+    });
+
+    // Function to load members from API
+    async function loadMembers() {
+        try {
+            const response = await fetch('/api/v1/members_batyam/');
+            if (!response.ok) {
+                throw new Error('Failed to fetch members');
+            }
+            allMembers = await response.json();
+            displayMembers(allMembers);
+        } catch (error) {
+            console.error('Error loading members:', error);
+            alert('שגיאה בטעינת המתאמנים. אנא נסה שנית.');
+        }
     }
-}
 
-function updateExpiringMembershipsTable(members) {
-    const tenDaysFromNow = new Date();
-    tenDaysFromNow.setDate(tenDaysFromNow.getDate() + 10);
-    const today = new Date();
+    // Function to display members
+    function displayMembers(members) {
+        const tableBody = document.querySelector('#members-table-body');
+        tableBody.innerHTML = '';
+        
+        members.forEach(member => {
+            // Get subscription status first
+            const subscriptionStatus = getSubscriptionStatus(member);
+            
+            // Display appropriate data based on membership status
+            const membershipType = member.type_membership || member.membershipType;
+            const paymentMethod = member.payment_method || member.paymentMethod;
+            const paymentDate = member.payment_date || formatDate(member.subscriptionvalid);
+            
+            const paymentStatus = getPaymentStatus(member);
+            
+            const row = document.createElement('tr');
+            
+            // Create each cell individually to avoid HTML injection issues
+            const nameCell = document.createElement('td');
+            nameCell.textContent = member.fullName;
+            
+            const phoneCell = document.createElement('td');
+            phoneCell.textContent = member.phone;
+
+            const phone2Cell = document.createElement('td');
+            phone2Cell.textContent = member.phone2 || '';
+            
+            const typeCell = document.createElement('td');
+            typeCell.textContent = member.type_membership;
+
+            const methodCell = document.createElement('td');
+            methodCell.textContent = member.payment_method;
+            
+            const validCell = document.createElement('td');
+            validCell.textContent = paymentDate;
+            
+            // Add payment status cell
+            const statusCell = document.createElement('td');
+            const statusSpan = document.createElement('span');
+            statusSpan.textContent = paymentStatus.text;
+            statusSpan.className = paymentStatus.class;
+            statusCell.appendChild(statusSpan);
+            
+            // Action cell with edit button
+            const actionCell = document.createElement('td');
+            actionCell.className = 'action-buttons';
+            
+            const editButton = document.createElement('button');
+            editButton.className = 'blue-btn';
+            editButton.textContent = 'ערוך מתאמן';
+            editButton.onclick = function() {
+                openEditMemberModal(member);
+            };
+            
+            actionCell.appendChild(editButton);
+            
+            // Add all cells to the row
+            row.appendChild(nameCell);
+            row.appendChild(phoneCell);
+            row.appendChild(phone2Cell);
+            row.appendChild(typeCell);
+            row.appendChild(methodCell);
+            row.appendChild(validCell);
+            row.appendChild(statusCell);  // Add the status cell
+            row.appendChild(actionCell);
+            
+            // Add the row to the table
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Add delete button functionality
+    const deleteBtn = document.getElementById('delete-btn');
     
-    // Get members with expiring memberships or unpaid status
-    const expiringMembers = members.filter(member => {
-        // Skip unlimited memberships
-        if (member.subscriptionvalid === '9999-12-12') return false;
+    deleteBtn.addEventListener('click', async () => {
+        const memberId = document.getElementById('member-id').value;
         
-        // Include members with unpaid payment status
-        if (member.paymentStatus === 'unpaid') return true;
+        if (!memberId) {
+            alert('לא ניתן למחוק מתאמן חדש שטרם נוסף למערכת');
+            return;
+        }
         
-        // Include members with expired or soon-to-expire memberships
-        const expiryDate = new Date(member.subscriptionvalid);
-        return expiryDate <= tenDaysFromNow;
+        const confirmDelete = confirm('האם אתה בטוח שברצונך למחוק את המתאמן? פעולה זו אינה ניתנת לביטול');
+        
+        if (confirmDelete) {
+            try {
+                const response = await fetch(`/api/v1/members_batyam/id/${memberId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    alert('המתאמן נמחק בהצלחה');
+                    memberModal.style.display = 'none';
+                    loadMembers(); // Reload the members list
+                } else {
+                    const error = await response.json();
+                    alert(`שגיאה: ${error.detail || 'אירעה שגיאה בעת מחיקת המתאמן'}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('אירעה שגיאה בעת מחיקת המתאמן');
+            }
+        }
     });
 
-    const tbody = document.querySelector('#expiring-memberships tbody');
-    tbody.innerHTML = expiringMembers.map(member => {
-        const expiryDate = new Date(member.subscriptionvalid);
-        const status = member.paymentStatus === 'unpaid' ? 'לא שולם' : 
-                      (expiryDate < today ? 'פג תוקף' : 'עומד לפוג');
+    // Function to open add member modal
+    function openAddMemberModal() {
+        // Clear the form
+        memberForm.reset();
+        document.getElementById('member-id').value = '';
         
-        return `
-            <tr>
-                <td>${member.fullName}</td>
-                <td>${member.phone}</td>
-                <td>${new Date(member.subscriptionvalid).toLocaleDateString('he-IL')}</td>
-                <td>${member.membershipType}</td>
-                <td><span class="${status === 'לא שולם' ? 'status-unpaid' : 'status-expiring'}">${status}</span></td>
-            </tr>
-        `;
-    }).join('');
-}
+        // Set modal title for adding new member
+        modalTitle.textContent = 'הוסף מתאמן חדש';
+        
+        // Hide delete button for new members
+        deleteBtn.classList.add('hide-delete-btn');
+        
+        // Show the modal
+        memberModal.style.display = 'block';
+    }
 
-function updateFrozenMembersTable(members) {
-    // Get frozen members
-    const frozenMembers = members.filter(member => 
-        member.membershipStatus === 'frozen'
-    );
+    // Function to open edit member modal
+    function openEditMemberModal(member) {
+        // Set modal title for editing
+        modalTitle.textContent = 'ערוך פרטי מתאמן';
+        
+        // Show delete button for existing members
+        deleteBtn.classList.remove('hide-delete-btn');
+        
+        // Fill the form with member data
+        document.getElementById('member-id').value = member._id;
+        document.getElementById('edit-name').value = member.fullName || '';
+        document.getElementById('edit-phone').value = member.phone || '';
+        document.getElementById('edit-phone2').value = member.phone2 || '';
+        document.getElementById('edit-membership-type').value = member.type_membership || '';
+        document.getElementById('edit-payment-method').value = member.payment_method || '';
+        document.getElementById('edit-subscription-valid').value = formatDateForInput(member.payment_date);
+        // Set select values
+        setSelectValue('edit-membership-type', member.type_membership);
+        setSelectValue('edit-payment-method', member.payment_method);
+        setSelectValue('edit-payment-status', member.payment_status);
+        setSelectValue('edit-membership-status', member.membership_status);
+        
+        // Set subscription date
+        document.getElementById('edit-subscription-valid').value = formatDateForInput(member.payment_date);
+        
+        // Set subscription field state based on payment method
+        const subscriptionValidField = document.getElementById('edit-subscription-valid');
+        if (member.payment_method === 'מזומן') {
+            subscriptionValidField.disabled = false;
+        } else if (member.payment_method === 'אשראי') {
+            subscriptionValidField.disabled = true;
+        }
+        
+        // Show the modal
+        memberModal.style.display = 'block';
+    }
 
-    const tbody = document.querySelector('#frozen-members tbody');
-    tbody.innerHTML = frozenMembers.map(member => {
-        return `
-            <tr>
-                <td>${member.fullName}</td>
-                <td>${member.phone}</td>
-                <td>${member.lastVisit ? new Date(member.lastVisit).toLocaleDateString('he-IL') : 'לא זמין'}</td>
-                <td>${member.membershipType || 'לא זמין'}</td>
-            </tr>
-        `;
-    }).join('');
-}
+    // Function to set select value
+    function setSelectValue(selectId, value) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+        
+        for (let i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === value) {
+                select.selectedIndex = i;
+                break;
+            }
+        }
+    }
 
-function updateInactiveMembersTable(members) {
-    const tenDaysAgo = new Date();
-    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+    // Updated function to check subscription status
+    function getSubscriptionStatus(member) {
+        // Check if membership is frozen
+        if (member.membership_status === 'frozen') {
+            return {
+                text: 'מנוי מוקפא',
+                class: 'status-frozen'
+            };
+        }
+        
+        // Check if account is deactivated
+        if (member.membership_status === 'inactive') {
+            return {
+                text: 'מנוי לא בתוקף',
+                class: 'status-expired'
+            };
+        }
+        
+        // Otherwise, the membership is active
+        return {
+            text: 'מנוי בתוקף',
+            class: 'status-valid'
+        };
+    }
+
+    // New function to check payment status
+    function getPaymentStatus(member) {
+        // For credit card payments, always show as paid
+        if (member.payment_method === 'אשראי') {
+            return {
+                text: 'מנוי שולם',
+                class: 'status-paid'
+            };
+        }
+        
+        // Check explicit payment status
+        if (member.payment_status === 'paid') {
+            return {
+                text: 'מנוי שולם',
+                class: 'status-paid'
+            };
+        }
+        
+        if (member.payment_status === 'unpaid') {
+            return {
+                text: 'מנוי לא שולם',
+                class: 'status-due'
+            };
+        }
+        
+        // If no explicit status, check the payment date
+        if (member.payment_date) {
+            const paymentDate = new Date(member.payment_date);
+            paymentDate.setHours(0, 0, 0, 0); // Reset time part
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time part
+            
+            if (paymentDate >= today || member.payment_date.includes('9999-12-12')) {
+                return {
+                    text: 'מנוי שולם',
+                    class: 'status-paid'
+                };
+            } else {
+                return {
+                    text: 'מנוי לא שולם',
+                    class: 'status-due'
+                };
+            }
+        }
+        
+        // Default case
+        return {
+            text: 'בדיקת תשלום',
+            class: 'status-due'
+        };
+    }
+
+    // Function to filter members
+    function filterMembers() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filteredMembers = allMembers.filter(member => 
+            member.fullName.toLowerCase().includes(searchTerm) ||
+            member.phone.includes(searchTerm) ||
+            (member.phone2 && member.phone2.includes(searchTerm))
+        );
+        displayMembers(filteredMembers);
+    }
+
+    // Helper function to format dates for display
+    function formatDate(dateString) {
+        if (!dateString) return 'לא זמין';
+        
+        // For the special "forever" date used for credit card payments
+        if (dateString.includes('9999-12-12')) {
+            return 'ללא הגבלה';  // "Unlimited" in Hebrew
+        }
+        
+        const date = new Date(dateString);
+        // Check if date is valid
+        if (isNaN(date.getTime())) return 'לא הגבלה';
+        
+        // Format date as DD/MM/YYYY
+        return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    }
     
-    const inactiveMembers = members.filter(member => {
-        const lastVisit = new Date(member.lastVisit);
-        return lastVisit < tenDaysAgo;
-    });
-
-    const tbody = document.querySelector('#inactive-members tbody');
-    tbody.innerHTML = inactiveMembers.map(member => {
-        const lastVisit = new Date(member.lastVisit);
-        const daysSinceVisit = Math.floor((new Date() - lastVisit) / (1000 * 60 * 60 * 24));
+    // Helper function to format dates for input fields
+    function formatDateForInput(dateString) {
+        if (!dateString || dateString.includes('9999-12-12')) return '';
         
-        return `
-            <tr>
-                <td>${member.fullName}</td>
-                <td>${member.phone}</td>
-                <td>${lastVisit.toLocaleDateString('he-IL')}</td>
-                <td>${daysSinceVisit}</td>
-            </tr>
-        `;
-    }).join('');
-}
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+        
+        // Format date as YYYY-MM-DD for input[type="date"]
+        return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+    }
+
+    // Initial load
+    loadMembers();
+});

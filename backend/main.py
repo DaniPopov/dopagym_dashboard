@@ -7,9 +7,10 @@ from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_303_SEE_OTHER
 from starlette.middleware.base import BaseHTTPMiddleware
 
 # Import routers
-from routers import members, auth
+from routers import members_oryehuda, auth, members_batyam
 from routers.auth import verify_session_token
-from mongo_db import MongoOrYehuda
+from mongo_oryehuda import MongoOrYehuda
+from mongo_batyam import MongoBatYam
 from scheduler import AccountStatusScheduler
 
 app = FastAPI()
@@ -79,7 +80,8 @@ async def shutdown_event():
 app.mount("/static", StaticFiles(directory="/app/frontend"), name="static")
 
 # Include routers
-app.include_router(members.router)
+app.include_router(members_oryehuda.router)
+app.include_router(members_batyam.router)
 app.include_router(auth.router)
 
 # Login page - no auth required

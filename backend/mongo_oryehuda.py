@@ -6,7 +6,7 @@ import pytz
 from typing import List, Optional
 from pymongo import MongoClient
 from bson import ObjectId
-from models import Member
+from models import Member_OrYehuda
 from dotenv import load_dotenv
 
 import qrcode
@@ -50,13 +50,13 @@ class MongoOrYehuda:
             client = MongoClient(mongo_uri)
             # Test the connection
             client.admin.command('ping')
-            logger.info("✅ Connected to MongoDB Atlas")
+            logger.info("✅ Connected to Mongo Or Yehuda")
             return client
         except Exception as e:
-            logger.error(f"❌ Error connecting to MongoDB: {e}")
+            logger.error(f"❌ Error connecting to Mongo Or Yehuda: {e}")
             raise e
         
-    async def add_member(self, member: Member) -> dict:
+    async def add_member(self, member: Member_OrYehuda) -> dict:
         """Add a new member to the database and generate a QR code."""
         try:
             israel_tz = pytz.timezone('Asia/Jerusalem')
@@ -140,10 +140,10 @@ class MongoOrYehuda:
                 {"_id": ObjectId(member_id)},  # Convert string ID to ObjectId
                 {"$set": update_data}
             )
-            logger.info(f"✅ Member updated: {result.modified_count} fields updated")
+            logger.info(f"✅ Member updated at Mongo Or Yehuda: {result.modified_count} fields updated")
             return result.modified_count > 0
         except Exception as e:
-            logger.error(f"❌ Error updating member: {e}")
+            logger.error(f"❌ Error updating member at Mongo Or Yehuda: {e}")
             raise e
 
     async def delete_member(self, member_id: str) -> bool:
@@ -169,20 +169,20 @@ class MongoOrYehuda:
             )
             return result.modified_count > 0
         except Exception as e:
-            logger.error(f"❌ Error updating last visit: {e}")
+            logger.error(f"❌ Error updating last visit at Mongo Or Yehuda: {e}")
             raise e
         
     async def get_all_members(self) -> List[dict]:
         """Get all members from the database"""
         try:
             members = list(self.members.find())
-            logger.info(f"✅ Members found: {members}")
+            logger.info(f"✅ Members found at Mongo Or Yehuda: {members}")
             # Convert ObjectId to string for JSON serialization
             for member in members:
                 member["_id"] = str(member["_id"])
             return members
         except Exception as e:
-            logger.error(f"❌ Error getting members: {e}")
+            logger.error(f"❌ Error getting members at Mongo Or Yehuda: {e}")
             raise e
 
     def generate_qrcode(self, member_id: str) -> str:
@@ -302,7 +302,7 @@ class MongoOrYehuda:
                 "member_name": member.get("fullName")
             }
         except Exception as e:
-            logger.error(f"❌ Error retrieving QR code: {e}")
+            logger.error(f"❌ Error retrieving QR code at Mongo Or Yehuda: {e}")
             raise e
 
 

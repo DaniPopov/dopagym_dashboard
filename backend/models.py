@@ -10,7 +10,7 @@ class LoginData(BaseModel):
     username: str
     password: str
 
-class Member(BaseModel):
+class Member_OrYehuda(BaseModel):
     fullName: str
     idNumber: str
     phone: str
@@ -31,3 +31,12 @@ class Member(BaseModel):
     notes: Optional[str] = None
     # TODO: add field for sauna --> int range 1-10 --> default 0
     # TODO: add field for massage --> int range 1-10 --> default 0
+
+class Member_BatYam(BaseModel):
+    fullName: str
+    phone: str
+    phone2: Optional[str] = None
+    type_membership: str # boxing or wrestling
+    payment_method: str # cash or card
+    payment_date: str
+
