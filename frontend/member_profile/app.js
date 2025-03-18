@@ -535,6 +535,20 @@ async function updateMember(memberId, memberData) {
             }
         }
         
+        // Check if subscription date was updated to a future date
+        if (memberData.subscriptionvalid) {
+            const subscriptionDate = new Date(memberData.subscriptionvalid);
+            const today = new Date();
+            
+            // If subscription date is in the future or is the special credit card date
+            if (subscriptionDate > today || memberData.subscriptionvalid === '9999-12-12') {
+                // Set payment status to paid and membership to active
+                memberData.paymentStatus = 'paid';
+                memberData.membershipStatus = 'active';
+                console.log('Updated payment status to paid and membership to active based on new subscription date');
+            }
+        }
+        
         const response = await fetch(`/api/v1/members/id/${memberId}`, {
             method: 'PUT',
             headers: {
@@ -573,9 +587,43 @@ function openEditModal(member) {
     setSelectValue('edit-membership-type', member.membershipType);
     setSelectValue('edit-weekly-training', member.weeklyTraining);
     setSelectValue('edit-payment-method', member.paymentMethod);
+    setSelectValue('edit-payment-status', member.paymentStatus);
+    setSelectValue('edit-membership-status', member.membershipStatus);
     
     // Set subscription date
     document.getElementById('edit-subscription-valid').value = formatDateForInput(member.subscriptionvalid);
+    
+    // Add event listener to payment method select to handle subscription valid field
+    const paymentMethodSelect = document.getElementById('edit-payment-method');
+    const subscriptionValidField = document.getElementById('edit-subscription-valid');
+    
+    // Remove any existing event listeners to prevent duplicates
+    const newPaymentMethodSelect = paymentMethodSelect.cloneNode(true);
+    paymentMethodSelect.parentNode.replaceChild(newPaymentMethodSelect, paymentMethodSelect);
+    
+    // Set up the event listener for payment method changes
+    newPaymentMethodSelect.addEventListener('change', function() {
+        if (this.value === 'מזומן') {
+            // For cash payment, enable the field for manual date entry
+            subscriptionValidField.disabled = false;
+            subscriptionValidField.value = subscriptionValidField.value || '';
+        } else if (this.value === 'אשראי') {
+            // For credit card payment, set a constant far future date and disable the field
+            subscriptionValidField.disabled = true;
+            subscriptionValidField.value = '9999-12-12';
+        } else {
+            // If no payment method is selected, disable the field
+            subscriptionValidField.disabled = true;
+            subscriptionValidField.value = '';
+        }
+    });
+    
+    // Initially set the state based on current payment method
+    if (member.paymentMethod === 'מזומן') {
+        subscriptionValidField.disabled = false;
+    } else if (member.paymentMethod === 'אשראי') {
+        subscriptionValidField.disabled = true;
+    }
     
     // Show the modal
     document.getElementById('edit-modal').style.display = 'block';

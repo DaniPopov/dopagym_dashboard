@@ -9,7 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 # Import routers
 from routers import members, auth
 from routers.auth import verify_session_token
-from mongo_db import MongoDB
+from mongo_db import MongoOrYehuda
 from scheduler import AccountStatusScheduler
 
 app = FastAPI()
@@ -112,3 +112,7 @@ async def scan_qr():
 @app.get("/member_profile")
 async def member_profile():
     return FileResponse("/app/frontend/member_profile/index.html")
+
+@app.get("/bat_yam")
+async def bat_yam():
+    return FileResponse("/app/frontend/bat_yam/index.html")

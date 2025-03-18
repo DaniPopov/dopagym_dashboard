@@ -4,7 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const scanBarcodeBtn = document.getElementById('scan-barcode-btn');
     const registerBtn = document.getElementById('register-btn');
     const allTraineesBtn = document.getElementById('all-trainees-btn');
-
+    const batYamBtn = document.getElementById('bat-yam-btn');
+    
     homeBtn.addEventListener('click', () => {
         window.location.href = '/main_page';
     });
@@ -19,6 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     allTraineesBtn.addEventListener('click', () => {
         window.location.href = '/all_members';
+    });
+
+    batYamBtn.addEventListener('click', () => {
+        window.location.href = '/bat_yam';
     });
     
     // Search functionality

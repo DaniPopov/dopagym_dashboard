@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException
 import logging
 from models import Member
-from mongo_db import MongoDB
+from mongo_db import MongoOrYehuda
 from fastapi.responses import JSONResponse
 from bson.objectid import ObjectId
 
 router = APIRouter(prefix="/api/v1/members", tags=["members"])
-db = MongoDB()
+db = MongoOrYehuda()
 logger = logging.getLogger(__name__)
 
 

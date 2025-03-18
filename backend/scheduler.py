@@ -3,14 +3,14 @@ import traceback
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from mongo_db import MongoDB
+from mongo_db import MongoOrYehuda
 
 logger = logging.getLogger(__name__)
 
 class AccountStatusScheduler:
     def __init__(self):
         self.scheduler = BackgroundScheduler()
-        self.db = MongoDB()
+        self.db = MongoOrYehuda()
 
     def start(self):
         """Start the scheduler with defined jobs"""

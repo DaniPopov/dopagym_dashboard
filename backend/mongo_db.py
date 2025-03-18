@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class MongoDB:
+class MongoOrYehuda:
     def __init__(self):
         self.client = self._connect()
         self.db = self.client["dopamiengym_db"]

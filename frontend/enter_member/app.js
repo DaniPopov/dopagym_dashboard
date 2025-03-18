@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const scanBarcodeBtn = document.getElementById('scan-barcode-btn');
     const registerBtn = document.getElementById('register-btn');
     const allTraineesBtn = document.getElementById('all-trainees-btn');
-
+    const batYamBtn = document.getElementById('bat-yam-btn');
     // Sidebar navigation
     homeBtn.addEventListener('click', () => {
         window.location.href = '/main_page';
@@ -20,9 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     allTraineesBtn.addEventListener('click', () => {
         window.location.href = '/all_members';
-        console.log('All trainees button clicked');
-    });
+            console.log('All trainees button clicked');
+        });
 
+    batYamBtn.addEventListener('click', () => {
+        window.location.href = '/bat_yam';
+    });
+    
     // Registration form handling
     const registrationForm = document.getElementById('registration-form');
     const cancelBtn = document.getElementById('cancel-btn');
