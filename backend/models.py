@@ -39,4 +39,7 @@ class Member_BatYam(BaseModel):
     type_membership: str # boxing or wrestling
     payment_method: str # cash or card
     payment_date: str
+    payment_status: str # paid or unpaid
+    weeklyTraining: Optional[str] = None  # 250, 350, or 450
+    notes: Optional[str] = None  # For storing additional notes about the member
 

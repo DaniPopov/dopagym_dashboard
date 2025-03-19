@@ -36,6 +36,7 @@
                 <input type="text" id="search-input" placeholder="חיפוש מתאמן...">
             </section>
             
+            
             <div class="add-member-btn">
                 <button id="add-member-btn">הוסף מתאמן</button>
             </div>
@@ -50,6 +51,7 @@
                             <th>טלפון 2</th>
                             <th>סוג מנוי</th>
                             <th>אופן תשלום</th>
+                            <th>עלות חודשית</th>
                             <th>תוקף תשלום</th>
                             <th>סטטוס תשלום</th>
                             <th>פעולות</th>
@@ -97,6 +99,14 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label for="edit-weekly-training">עלות אימון שבועי:</label>
+                    <select id="edit-weekly-training" name="weeklyTraining">
+                        <option value="250">250 ₪</option>
+                        <option value="350">350 ₪</option>
+                        <option value="450">450 ₪</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="edit-subscription-valid">תוקף מנוי:</label>
                     <input type="date" id="edit-subscription-valid" name="payment_date">
                 </div>
@@ -107,6 +117,10 @@
                         <option value="unpaid">לא שולם</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="edit-notes">הערות:</label>
+                    <textarea id="edit-notes" name="notes" rows="3"></textarea>
+                </div>
                 <div class="form-actions">
                     <button type="submit" id="save-btn" class="action-btn save-btn">שמור</button>
                     <button type="button" id="cancel-btn" class="action-btn cancel-btn">בטל</button>
@@ -115,6 +129,23 @@
             </form>
         </div>
     </div>
+
+    <!-- Notes Table Section -->
+    <section class="notes-table-container">
+        <h3 class="section-title">הערות מתאמנים</h3>
+        <table id="notes-table">
+            <thead>
+                <tr>
+                    <th>שם מתאמן</th>
+                    <th>הערות</th>
+                </tr>
+            </thead>
+            <tbody id="notes-table-body">
+                <!-- Notes rows will be added dynamically -->
+            </tbody>
+        </table>
+    </section>
+    
     
     <script src="/static/bat_yam/app.js"></script>
 </body>
