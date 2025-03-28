@@ -231,12 +231,29 @@ function displayMemberData(member) {
     
     // Set status badges
     const membershipStatusElement = document.getElementById('membership-status');
-    membershipStatusElement.textContent = member.membershipStatus === 'active' ? 'מנוי פעיל' : 'מנוי מוקפא';
-    membershipStatusElement.className = `status-badge ${member.membershipStatus === 'active' ? 'status-valid' : 'status-frozen'}`;
+    if(member.membershipStatus === 'active'){
+        membershipStatusElement.className = 'status-valid';
+        membershipStatusElement.textContent = 'מנוי פעיל';
+    }else if(member.membershipStatus === 'frozen'){
+        membershipStatusElement.className = 'status-frozen';
+        membershipStatusElement.textContent = 'מנוי מוקפא';
+    }
+    else if(member.membershipStatus === 'inactive'){
+        membershipStatusElement.className = 'status-inactive';
+        membershipStatusElement.textContent = 'מנוי פג תוקף';
+    }
     
     const paymentStatusElement = document.getElementById('payment-status');
-    paymentStatusElement.textContent = member.paymentStatus === 'paid' ? 'מנוי שולם' : 'מנוי לא שולם';
-    paymentStatusElement.className = `status-badge ${member.paymentStatus === 'paid' ? 'status-paid' : 'status-due'}`;
+    if(member.paymentStatus === 'paid'){
+        paymentStatusElement.className = 'status-paid';
+        paymentStatusElement.textContent = 'מנוי שולם';
+    }else if(member.paymentStatus === 'unpaid'){
+        paymentStatusElement.className = 'status-due';
+        paymentStatusElement.textContent = 'מנוי לא שולם';
+    }else if(member.paymentStatus === 'frozen'){
+        paymentStatusElement.className = 'status-due';
+        paymentStatusElement.textContent = 'מנוי מוקפא';
+    }
 
     // Set personal details
     const personalDetails = {
@@ -532,6 +549,28 @@ async function updateMember(memberId, memberData) {
         for (const field of fieldsToCheck) {
             if (field in memberData && (memberData[field] === null || memberData[field] === undefined)) {
                 memberData[field] = '';
+            }
+        }
+        
+        // Handle punch card renewal
+        if (memberData.weeklyTraining === "כרטסייה של 10 אימונים") {
+            const response = await fetch(`/api/v1/members/id/${memberId}`);
+            const currentMember = await response.json();
+            
+            // If member is inactive/unpaid and they're getting a new punch card
+            if (currentMember.membershipStatus === 'inactive' && 
+                currentMember.paymentStatus === 'unpaid' &&
+                currentMember.weeklyTraining === "כרטסייה של 10 אימונים") {
+                
+                // Set new status for fresh punch card
+                memberData.paymentStatus = 'paid';
+                memberData.membershipStatus = 'active';
+                
+                // Set subscription valid to 3 months from now
+                const today = new Date();
+                const threeMonthsLater = new Date(today);
+                threeMonthsLater.setMonth(today.getMonth() + 3);
+                memberData.subscriptionvalid = threeMonthsLater.toISOString().split('T')[0];
             }
         }
         

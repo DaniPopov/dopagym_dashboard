@@ -202,11 +202,40 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function checkWorkoutLimit(member) {
+        // Check if member has punch card ("כרטסייה של 10 אימונים")
+        if (member.weeklyTraining === "כרטסייה של 10 אימונים") {
+            // For punch card, count total visits instead of weekly visits
+            const totalVisits = member.allVisits ? member.allVisits.length : 0;
+            const visitsInCurrentCard = totalVisits % 10; // This will give us 0-9 visits in current card
+            const remainingVisits = 10 - visitsInCurrentCard;
+            
+            // If we have exactly used all 10 visits (visitsInCurrentCard is 0 and we have visits)
+            if (visitsInCurrentCard === 0 && totalVisits > 0) {
+                // Update member status to indicate card is fully used
+                updateMemberStatus(member._id, 'unpaid', 'inactive');
+                
+                return {
+                    canWorkout: false,
+                    message: `הכרטסייה נוצלה במלואה (10 מתוך 10 אימונים)`,
+                    details: 'יש לרכוש כרטסייה חדשה',
+                    punchCardCompleted: true
+                };
+            }
+            
+            return {
+                canWorkout: true,
+                message: `אימון ${visitsInCurrentCard + 1} מתוך 10 בכרטסייה`,
+                punchCard: true,
+                remainingVisits: remainingVisits - 1
+            };
+        }
+        
+        // Regular membership handling for weekly limits
         let allowedWorkoutsPerWeek = 1;
         
-        if (member.weeklyTraining.includes('250')) {
+        if (member.weeklyTraining.includes('250') || member.weeklyTraining.includes('200')) {
             allowedWorkoutsPerWeek = 1;
-        } else if (member.weeklyTraining.includes('350')) {
+        } else if (member.weeklyTraining.includes('350') || member.weeklyTraining.includes('300')) {
             allowedWorkoutsPerWeek = 2;
         } else if (member.weeklyTraining.includes('450')) {
             allowedWorkoutsPerWeek = 3;
@@ -281,9 +310,19 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span class="${paymentStatus ? 'status-paid' : 'status-due'}">
                             ${paymentStatus ? 'מנוי שולם' : 'מנוי לא שולם'}
                         </span>
-                    </p>
-                    <p><strong>אימונים השבוע:</strong> ${workoutLimitCheck.message}</p>
-                </div>`;
+                    </p>`;
+        
+        // Display appropriate message for punch card or regular membership
+        if (member.weeklyTraining === "כרטסייה של 10 אימונים" && workoutLimitCheck.punchCard) {
+            resultHTML += `
+                    <p><strong>כרטסייה:</strong> ${workoutLimitCheck.message}</p>
+                    <p><strong>נותרו:</strong> ${workoutLimitCheck.remainingVisits} אימונים</p>`;
+        } else {
+            resultHTML += `
+                    <p><strong>אימונים השבוע:</strong> ${workoutLimitCheck.message}</p>`;
+        }
+        
+        resultHTML += `</div>`;
 
         // Add error details if entry is not allowed
         if (!canEnter) {
@@ -291,7 +330,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="error-details">
                     ${subscriptionStatus.details ? `<p>${subscriptionStatus.details}</p>` : ''}
                     ${!workoutLimitCheck.canWorkout ? 
-                        `<p>אימון הבא אפשרי מתאריך: ${workoutLimitCheck.nextAvailableDate}</p>` : ''}
+                        (workoutLimitCheck.details ? 
+                            `<p>${workoutLimitCheck.details}</p>` : 
+                            `<p>אימון הבא אפשרי מתאריך: ${workoutLimitCheck.nextAvailableDate}</p>`) : ''}
                 </div>`;
         }
 
@@ -467,4 +508,26 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('beforeunload', () => {
         html5QrcodeScanner.clear();
     });
+
+    // Add this new function to update member status
+    async function updateMemberStatus(memberId, paymentStatus, membershipStatus) {
+        try {
+            const response = await fetch(`/api/v1/members/id/${memberId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    paymentStatus: paymentStatus,
+                    membershipStatus: membershipStatus
+                })
+            });
+            
+            if (!response.ok) {
+                console.error('Failed to update member status');
+            }
+        } catch (error) {
+            console.error('Error updating member status:', error);
+        }
+    }
 }); 

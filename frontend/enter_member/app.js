@@ -34,23 +34,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add event listener to payment method dropdown to control subscription validity
     const paymentMethodSelect = document.getElementById('paymentMethod');
     const subscriptionValidField = document.getElementById('subscriptionvalid');
+    const weeklyTrainingSelect = document.getElementById('weeklyTraining');
 
     // Initially disable the subscription valid field
     subscriptionValidField.disabled = true;
 
-    paymentMethodSelect.addEventListener('change', function() {
-        if (this.value === 'מזומן') {
-            // For cash payment, enable the field for manual date entry
-            subscriptionValidField.disabled = false;
-            subscriptionValidField.value = '';
-        } else if (this.value === 'אשראי') {
-            // For credit card payment, set a constant far future date and disable the field
+    weeklyTrainingSelect.addEventListener('change', function() {
+        if (this.value == "כרטסייה של 10 אימונים"){
             subscriptionValidField.disabled = true;
-            subscriptionValidField.value = '9999-12-12';
+            const today = new Date();
+            const threeMonthsLater = new Date(today);
+            threeMonthsLater.setMonth(today.getMonth() + 3);
+            subscriptionValidField.value = threeMonthsLater.toISOString().split('T')[0];
         } else {
-            // If no payment method is selected, disable the field
-            subscriptionValidField.disabled = true;
-            subscriptionValidField.value = '';
+            // Reset to default behavior for other options
+            // Let payment method control determine the field state
+            paymentMethodSelect.dispatchEvent(new Event('change'));
+        }
+    });
+
+    paymentMethodSelect.addEventListener('change', function() {
+        // Only apply these rules if weekly training is not set to כרטסייה
+        if (weeklyTrainingSelect.value !== "כרטסייה של 10 אימונים") {
+            if (this.value === 'מזומן') {
+                // For cash payment, enable the field for manual date entry
+                subscriptionValidField.disabled = false;
+                subscriptionValidField.value = '';
+            } else if (this.value === 'אשראי') {
+                // For credit card payment, set a constant far future date and disable the field
+                subscriptionValidField.disabled = true;
+                subscriptionValidField.value = '9999-12-12';
+            } else {
+                // If no payment method is selected, disable the field
+                subscriptionValidField.disabled = true;
+                subscriptionValidField.value = '';
+            }
         }
     });
 

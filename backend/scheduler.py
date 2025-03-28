@@ -16,7 +16,7 @@ class AccountStatusScheduler:
 
     def start(self):
         """Start the scheduler with defined jobs"""
-        # Run at specified times for testing
+        # Run at specified times 
         self.scheduler.add_job(
             self._run_payment_status_update,  # Use wrapper function
             CronTrigger(hour=00, minute=00),
@@ -24,12 +24,12 @@ class AccountStatusScheduler:
             replace_existing=True
         )
 
-        self.scheduler.add_job(
-            self._run_inactive_accounts_update,  # Use wrapper function
-            CronTrigger(hour=00, minute=10),
-            id="update_inactive_accounts",
-            replace_existing=True
-        )
+        #self.scheduler.add_job(
+        #    self._run_inactive_accounts_update,  # Use wrapper function
+        #    CronTrigger(hour=00, minute=10),
+        #    id="update_inactive_accounts",
+        #    replace_existing=True
+        #)
         
         # Add job for Bat Yam payment status update
         self.scheduler.add_job(
@@ -50,13 +50,13 @@ class AccountStatusScheduler:
         loop.run_until_complete(self.update_payment_status())
         loop.close()
 
-    def _run_inactive_accounts_update(self):
-        """Wrapper to run the async inactive accounts update"""
-        import asyncio
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(self.update_inactive_accounts())
-        loop.close()
+    #def _run_inactive_accounts_update(self):
+    #    """Wrapper to run the async inactive accounts update"""
+    #    import asyncio
+    #    loop = asyncio.new_event_loop()
+    #    asyncio.set_event_loop(loop)
+    #    loop.run_until_complete(self.update_inactive_accounts())
+    #    loop.close()
         
     def _run_batyam_payment_status_update(self):
         """Wrapper to run the async Bat Yam payment status update"""
