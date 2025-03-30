@@ -159,6 +159,24 @@ document.addEventListener('DOMContentLoaded', function () {
             };
         }
         
+        // For punch card, always valid unless marked as inactive/unpaid
+        if (member.weeklyTraining === "כרטסייה של 10 אימונים") {
+            if (member.membershipStatus === 'inactive' || member.paymentStatus === 'unpaid') {
+                return {
+                    valid: false,
+                    message: 'הכרטסייה נוצלה במלואה',
+                    details: 'יש לרכוש כרטסייה חדשה כדי להמשיך להתאמן',
+                    punchCardCompleted: true
+                };
+            }
+            
+            return {
+                valid: true,
+                message: 'כרטסייה בתוקף',
+                punchCardCompleted: false
+            };
+        }
+
         // For credit card payments, always valid
         if (member.paymentMethod === 'אשראי') {
             return {
@@ -204,21 +222,29 @@ document.addEventListener('DOMContentLoaded', function () {
     function checkWorkoutLimit(member) {
         // Check if member has punch card ("כרטסייה של 10 אימונים")
         if (member.weeklyTraining === "כרטסייה של 10 אימונים") {
-            // For punch card, count total visits instead of weekly visits
+            // If status already shows inactive/unpaid, card is completed
+            if (member.membershipStatus === 'inactive' || member.paymentStatus === 'unpaid') {
+                return {
+                    canWorkout: false,
+                    message: 'הכרטסייה נוצלה במלואה (10 מתוך 10 אימונים)',
+                    details: 'יש לרכוש כרטסייה חדשה כדי להמשיך להתאמן',
+                    punchCardCompleted: true
+                };
+            }
+            
+            // For punch card, count total visits
             const totalVisits = member.allVisits ? member.allVisits.length : 0;
             const visitsInCurrentCard = totalVisits % 10; // This will give us 0-9 visits in current card
             const remainingVisits = 10 - visitsInCurrentCard;
             
-            // If we have exactly used all 10 visits (visitsInCurrentCard is 0 and we have visits)
-            if (visitsInCurrentCard === 0 && totalVisits > 0) {
-                // Update member status to indicate card is fully used
-                updateMemberStatus(member._id, 'unpaid', 'inactive');
-                
+            // If this visit will be the 10th (final) visit
+            if (visitsInCurrentCard === 9) {
                 return {
-                    canWorkout: false,
-                    message: `הכרטסייה נוצלה במלואה (10 מתוך 10 אימונים)`,
-                    details: 'יש לרכוש כרטסייה חדשה',
-                    punchCardCompleted: true
+                    canWorkout: true,
+                    message: `אימון ${visitsInCurrentCard + 1} מתוך 10 בכרטסייה`,
+                    punchCard: true,
+                    remainingVisits: remainingVisits - 1,
+                    isLastVisit: true  // Flag to indicate this is the last visit
                 };
             }
             
@@ -276,7 +302,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function formatDate(date) {
-        return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+        // Format date using Israel timezone (UTC+3)
+        const options = { 
+            timeZone: 'Asia/Jerusalem',
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric' 
+        };
+        return date.toLocaleDateString('he-IL', options);
     }
 
     function displayScanResult(member, subscriptionStatus, paymentStatus, workoutLimitCheck) {
@@ -317,6 +350,11 @@ document.addEventListener('DOMContentLoaded', function () {
             resultHTML += `
                     <p><strong>כרטסייה:</strong> ${workoutLimitCheck.message}</p>
                     <p><strong>נותרו:</strong> ${workoutLimitCheck.remainingVisits} אימונים</p>`;
+                
+            // Add a hidden data attribute if this is the last visit
+            if (workoutLimitCheck.isLastVisit) {
+                resultHTML += `<div data-last-punch-card-visit="true" style="display:none;"></div>`;
+            }
         } else {
             resultHTML += `
                     <p><strong>אימונים השבוע:</strong> ${workoutLimitCheck.message}</p>`;
@@ -373,7 +411,16 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             
             if (response.ok) {
+                // Check if this was the last visit in a punch card
                 const resultContainer = document.getElementById('scan-result');
+                const isLastPunchCardVisit = resultContainer.querySelector('[data-last-punch-card-visit="true"]');
+                
+                if (isLastPunchCardVisit) {
+                    // This was the 10th visit of a punch card, update the member's status
+                    await updateMemberStatus(memberId, 'unpaid', 'inactive');
+                    console.log('Updated member status to unpaid/inactive after last punch card visit');
+                }
+                
                 resultContainer.innerHTML = `
                     <div class="scan-result success">
                         <h2>✅ כניסה נרשמה בהצלחה</h2>
@@ -512,6 +559,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add this new function to update member status
     async function updateMemberStatus(memberId, paymentStatus, membershipStatus) {
         try {
+            console.log(`Updating member ${memberId} status to: payment=${paymentStatus}, membership=${membershipStatus}`);
+            
             const response = await fetch(`/api/v1/members/id/${memberId}`, {
                 method: 'PATCH',
                 headers: {
@@ -524,7 +573,10 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             
             if (!response.ok) {
-                console.error('Failed to update member status');
+                const errorData = await response.json();
+                console.error('Failed to update member status:', errorData);
+            } else {
+                console.log('Member status updated successfully');
             }
         } catch (error) {
             console.error('Error updating member status:', error);

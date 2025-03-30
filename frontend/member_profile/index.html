@@ -184,8 +184,8 @@
                 <div class="form-group">
                     <label for="edit-membership-type">סוג מנוי:</label>
                     <select id="edit-membership-type" name="membershipType">
-                        <option value="היאבקות נוער">היאבקות נוער</option>
-                        <option value="היאבקות בוגרים">היאבקות בוגרים</option>
+                        <option value="היאבקות">היאבקות</option>
+                        <option value="לחימה משולבת">לחימה משולבת</option>
                         <option value="אימון אישי">אימון אישי</option>
                         <option value="חדר כושר">חדר כושר</option>
                     </select>
@@ -193,11 +193,15 @@
                 <div class="form-group">
                     <label for="edit-weekly-training">אימונים בשבוע:</label>
                     <select id="edit-weekly-training" name="weeklyTraining">
+                        <option value="">בחר כמות אימונים</option>
+                        <option value="כרטסייה של 10 אימונים">כרטסייה של 10 אימונים</option>
+                        <option value ="200 ש״ח אימון בשבוע">200 ש״ח אימון בשבוע</option>
                         <option value="250 ש״ח אימון בשבוע">250 ש״ח אימון בשבוע</option>
+                        <option value="300 ש״ח אימון בשבוע">300 ש״ח אימון בשבוע</option>
                         <option value="350 ש״ח שתי אימונים בשבוע">350 ש״ח שתי אימונים בשבוע</option>
                         <option value="450 ש״ח שלוש אימונים בשבוע">450 ש״ח שלוש אימונים בשבוע</option>
-                        <option value="550 ש״ח ללא הגבלה באימונים">550 ש״ח ללא הגבלה באימונים</option>
-                    </select>
+                        <option value="550 ש״ח מנוי ללא הגבלה באימונים">550 ש״ח מנוי ללא הגבלה באימונים</option>
+                </select>
                 </div>
                 <div class="form-group">
                     <label for="edit-payment-method">אופן תשלום:</label>
@@ -217,6 +221,7 @@
                     <label for="edit-membership-status">סטטוס מנוי:</label>
                     <select id="edit-membership-status" name="membershipStatus">
                         <option value="active">פעיל</option>
+                        <option value="inactive">פג תוקף</option>
                         <option value="frozen">מוקפא</option>
                     </select>
                 </div>

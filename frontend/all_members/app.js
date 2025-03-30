@@ -172,35 +172,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // New function to check payment status
     function getPaymentStatus(member) {
-        if (member.paymentMethod === 'אשראי') {
+        // First check if membership is inactive
+        if (member.membershipStatus === 'inactive') {
+            return {
+                text: 'מנוי לא שולם',
+                class: 'status-due'
+            };
+        }
+
+        // Then check payment method and status
+        if (member.paymentMethod === 'אשראי' && member.paymentStatus === 'paid') {
             return {
                 text: 'מנוי שולם',
                 class: 'status-paid'
             };
         }
         
-        if (member.paymentStatus === 'paid' && member.membershipStatus === 'active') {
+        if (member.paymentStatus === 'paid') {
             return {
                 text: 'מנוי שולם',
                 class: 'status-paid'
             };
         }
 
-        if (member.paymentStatus === 'paid' && member.membershipStatus === 'frozen') {
-            return {
-                text: 'מנוי שולם',
-                class: 'status-paid'
-            };
-        }
-        
-        if (member.paymentStatus === 'unpaid')      
-            return {
-                text: 'מנוי לא שולם',
-                class: 'status-due'
-            };
-        
+        // Default to unpaid
         return {
-            text: 'בדיקת תשלום',
+            text: 'מנוי לא שולם',
             class: 'status-due'
         };
     }

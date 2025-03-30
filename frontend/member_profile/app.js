@@ -231,29 +231,40 @@ function displayMemberData(member) {
     
     // Set status badges
     const membershipStatusElement = document.getElementById('membership-status');
+    const paymentStatusElement = document.getElementById('payment-status');
+    membershipStatusElement.className = 'status-badge';
+    paymentStatusElement.className = 'status-badge';
+    
+    console.log("Membership status before display:", member.membershipStatus);
+    
     if(member.membershipStatus === 'active'){
-        membershipStatusElement.className = 'status-valid';
+        membershipStatusElement.classList.add('status-valid');
         membershipStatusElement.textContent = 'מנוי פעיל';
+    }else if(member.membershipStatus === 'inactive'){
+        membershipStatusElement.classList.add('status-inactive');
+        membershipStatusElement.textContent = 'מנוי פג תוקף';
     }else if(member.membershipStatus === 'frozen'){
-        membershipStatusElement.className = 'status-frozen';
+        membershipStatusElement.classList.add('status-frozen');
         membershipStatusElement.textContent = 'מנוי מוקפא';
     }
-    else if(member.membershipStatus === 'inactive'){
-        membershipStatusElement.className = 'status-inactive';
-        membershipStatusElement.textContent = 'מנוי פג תוקף';
-    }
     
-    const paymentStatusElement = document.getElementById('payment-status');
+    console.log("Applied classes:", membershipStatusElement.className);
+
+
+    console.log("Payment status before display:", member.paymentStatus);
+
     if(member.paymentStatus === 'paid'){
-        paymentStatusElement.className = 'status-paid';
+        paymentStatusElement.classList.add('status-valid');
         paymentStatusElement.textContent = 'מנוי שולם';
     }else if(member.paymentStatus === 'unpaid'){
-        paymentStatusElement.className = 'status-due';
+        paymentStatusElement.classList.add('status-due');
         paymentStatusElement.textContent = 'מנוי לא שולם';
     }else if(member.paymentStatus === 'frozen'){
-        paymentStatusElement.className = 'status-due';
+        paymentStatusElement.classList.add('status-frozen');
         paymentStatusElement.textContent = 'מנוי מוקפא';
     }
+
+    console.log("Applied classes:", paymentStatusElement.className);
 
     // Set personal details
     const personalDetails = {
@@ -312,6 +323,21 @@ function displayMemberData(member) {
     const freezeBtn = document.getElementById('freeze-member-btn');
     if (freezeBtn) {
         freezeBtn.textContent = member.membershipStatus === 'frozen' ? 'הפשר מנוי' : 'הקפא מנוי';
+    }
+
+    // Add this after setting the membership status badge
+    if (member.weeklyTraining === "כרטסייה של 10 אימונים" && 
+        member.membershipStatus === 'inactive' &&
+        member.paymentStatus === 'unpaid') {
+        
+        // Create a special notice element for punch card
+        const noticeElement = document.createElement('div');
+        noticeElement.className = 'punch-card-notice';
+        noticeElement.textContent = 'הכרטסייה נוצלה במלואה, יש לרכוש כרטסייה חדשה';
+        
+        // Insert after the status badges
+        const profileInfo = document.querySelector('.profile-info');
+        profileInfo.appendChild(noticeElement);
     }
 }
 
@@ -686,4 +712,33 @@ function formatDateForInput(dateString) {
     
     // Format date as YYYY-MM-DD for input[type="date"]
     return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+}
+
+async function resetPunchCard(memberId) {
+    try {
+        const response = await fetch(`/api/v1/members/id/${memberId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                'paymentStatus': 'paid',
+                'membershipStatus': 'active'
+            }),
+        });
+
+        if (response.ok) {
+            alert('הכרטסייה חודשה בהצלחה');
+            window.location.reload(); // Reload page to show changes
+            return true;
+        } else {
+            const error = await response.json();
+            alert(`שגיאה: ${error.detail || 'אירעה שגיאה בעת חידוש הכרטסייה'}`);
+            return false;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('אירעה שגיאה בעת חידוש הכרטסייה');
+        return false;
+    }
 }

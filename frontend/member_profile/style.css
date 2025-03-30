@@ -142,6 +142,11 @@ body {
     color: #004085;
 }
 
+.status-inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
 .profile-actions {
     display: flex;
     gap: 10px;
