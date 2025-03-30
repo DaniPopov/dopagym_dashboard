@@ -201,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             allMembers = await response.json();
             displayMembers(allMembers);
             displayNotesTable(allMembers);
+            displayExpiringSubscriptions(allMembers);
         } catch (error) {
             console.error('Error loading members:', error);
             alert('שגיאה בטעינת המתאמנים. אנא נסה שנית.');
@@ -346,6 +347,85 @@ document.addEventListener('DOMContentLoaded', () => {
             row.appendChild(notesCell);
             
             notesTableBody.appendChild(row);
+        });
+    }
+
+    // Function to display expiring subscriptions
+    function displayExpiringSubscriptions(members) {
+        const tableBody = document.querySelector('#expiring-subscriptions-body');
+        if (!tableBody) return;
+        
+        tableBody.innerHTML = '';
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const weekFromNow = new Date(today);
+        weekFromNow.setDate(today.getDate() + 7);
+        
+        // Filter members with expired or expiring subscriptions
+        const expiringMembers = members.filter(member => {
+            if (member.payment_method === 'אשראי') return false;
+            
+            const paymentDate = new Date(member.payment_date);
+            paymentDate.setHours(0, 0, 0, 0);
+            
+            return paymentDate <= weekFromNow;
+        });
+        
+        if (expiringMembers.length === 0) {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 5;
+            cell.textContent = 'אין מנויים שפגו תוקף או עומדים לפוג';
+            cell.style.textAlign = 'center';
+            row.appendChild(cell);
+            tableBody.appendChild(row);
+            return;
+        }
+        
+        // Sort by payment date (expired first)
+        expiringMembers.sort((a, b) => {
+            const dateA = new Date(a.payment_date);
+            const dateB = new Date(b.payment_date);
+            return dateA - dateB;
+        });
+        
+        expiringMembers.forEach(member => {
+            const row = document.createElement('tr');
+            const paymentStatus = getPaymentStatus(member);
+            
+            // Create cells
+            const nameCell = document.createElement('td');
+            nameCell.textContent = member.fullName;
+            
+            const phoneCell = document.createElement('td');
+            phoneCell.textContent = member.phone;
+            
+            const validCell = document.createElement('td');
+            validCell.textContent = formatDate(member.payment_date);
+            
+            const statusCell = document.createElement('td');
+            const statusSpan = document.createElement('span');
+            statusSpan.textContent = paymentStatus.text;
+            statusSpan.className = paymentStatus.class;
+            statusCell.appendChild(statusSpan);
+            
+            const actionCell = document.createElement('td');
+            const editButton = document.createElement('button');
+            editButton.className = 'blue-btn';
+            editButton.textContent = 'ערוך מתאמן';
+            editButton.onclick = () => openEditMemberModal(member);
+            actionCell.appendChild(editButton);
+            
+            // Add cells to row
+            row.appendChild(nameCell);
+            row.appendChild(phoneCell);
+            row.appendChild(validCell);
+            row.appendChild(statusCell);
+            row.appendChild(actionCell);
+            
+            tableBody.appendChild(row);
         });
     }
 
@@ -512,47 +592,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 class: 'status-paid'
             };
         }
-        
-        // Check explicit payment status
-        if (member.payment_status === 'paid') {
+
+        if (!member.payment_date) {
             return {
-                text: 'מנוי שולם',
-                class: 'status-paid'
+                text: 'בדיקת תשלום',
+                class: 'status-due'
             };
         }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         
-        if (member.payment_status === 'unpaid') {
+        const paymentDate = new Date(member.payment_date);
+        paymentDate.setHours(0, 0, 0, 0);
+        
+        const weekFromNow = new Date(today);
+        weekFromNow.setDate(today.getDate() + 7);
+
+        // Payment is expired
+        if (paymentDate < today) {
             return {
                 text: 'מנוי לא שולם',
                 class: 'status-due'
             };
         }
         
-        // If no explicit status, check the payment date
-        if (member.payment_date) {
-            const paymentDate = new Date(member.payment_date);
-            paymentDate.setHours(0, 0, 0, 0); // Reset time part
-            
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Reset time part
-            
-            if (paymentDate >= today || member.payment_date.includes('9999-12-12')) {
-                return {
-                    text: 'מנוי שולם',
-                    class: 'status-paid'
-                };
-            } else {
-                return {
-                    text: 'מנוי לא שולם',
-                    class: 'status-due'
-                };
-            }
+        // Payment will expire within a week
+        if (paymentDate <= weekFromNow) {
+            return {
+                text: 'מנוי עומד לפוג',
+                class: 'status-going-to-expire'
+            };
         }
         
-        // Default case
+        // Payment is valid and not expiring soon
         return {
-            text: 'בדיקת תשלום',
-            class: 'status-due'
+            text: 'מנוי שולם',
+            class: 'status-paid'
         };
     }
 
@@ -566,6 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         displayMembers(filteredMembers);
         displayNotesTable(filteredMembers);
+        displayExpiringSubscriptions(filteredMembers);
     }
 
     // Helper function to format dates for display

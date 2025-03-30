@@ -170,6 +170,16 @@ body {
     font-weight: bold;
 }
 
+.status-going-to-expire {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+
 /* Update the action-buttons class to center the single button */
 .action-buttons {
     display: flex;
@@ -441,5 +451,42 @@ body {
     .member-notes-cell {
         max-width: 200px;
     }
+}
+
+.expiring-subscriptions-container {
+    background-color: #fff3cd;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.expiring-subscriptions-container .section-title {
+    color: #856404;
+    margin-bottom: 15px;
+}
+
+#expiring-subscriptions-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#expiring-subscriptions-table th,
+#expiring-subscriptions-table td {
+    padding: 12px;
+    text-align: right;
+    border-bottom: 1px solid #dee2e6;
+}
+
+#expiring-subscriptions-table th {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+#expiring-subscriptions-table tr:hover {
+    background-color: #fff9e6;
 }
 

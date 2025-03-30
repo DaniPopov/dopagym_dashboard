@@ -89,6 +89,8 @@
                     <select id="edit-membership-type" name="type_membership">
                         <option value="היאבקות ">היאבקות</option>
                         <option value="איגרוף ">איגרוף</option>
+                        <option value="כושר נשים">כושר נשים</option>
+                        <option value="היאבקות בנות">היאבקות בנות</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -102,6 +104,7 @@
                     <label for="edit-weekly-training">עלות אימון שבועי:</label>
                     <select id="edit-weekly-training" name="weeklyTraining">
                         <option value="250">250 ₪</option>
+                        <option value="300">300 ₪</option>
                         <option value="350">350 ₪</option>
                         <option value="450">450 ₪</option>
                     </select>
@@ -146,6 +149,24 @@
         </table>
     </section>
     
+    <!-- Expiring Subscriptions Table Section -->
+    <section class="expiring-subscriptions-container">
+        <h3 class="section-title">מנויים שפגו תוקף או עומדים לפוג</h3>
+        <table id="expiring-subscriptions-table">
+            <thead>
+                <tr>
+                    <th>שם מלא</th>
+                    <th>טלפון</th>
+                    <th>תוקף מנוי</th>
+                    <th>סטטוס</th>
+                    <th>פעולות</th>
+                </tr>
+            </thead>
+            <tbody id="expiring-subscriptions-body">
+                <!-- Rows will be added dynamically -->
+            </tbody>
+        </table>
+    </section>    
     
     <script src="/static/bat_yam/app.js"></script>
 </body>
