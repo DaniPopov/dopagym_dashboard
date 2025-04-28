@@ -23,18 +23,70 @@ function setupNavigation() {
 
 async function loadDashboardData() {
     try {
+        // Fetch members
         const response = await fetch('/api/v1/members/');
         const members = await response.json();
-        
+        window._dashboardMembers = members; // Store globally for modal use
+
         updateStats(members);
+        updateTodayEntriesTable(members);
         createClassDistributionChart(members);
         createWeeklyEntriesChart(members);
         updateExpiringMembershipsTable(members);
         updateFrozenMembersTable(members);
+
+        // Fetch weekly entries count
+        const weeklyRes = await fetch('/api/v1/members/weekly_entries');
+        const weeklyData = await weeklyRes.json();
+        document.getElementById('weekly-entries-count').textContent = weeklyData.weekly_entries || 0;
     } catch (error) {
         console.error('Error loading dashboard data:', error);
+        document.getElementById('weekly-entries-count').textContent = 'שגיאה';
     }
 }
+
+// Modal logic for editing members
+function showEditMembersModal(members, title = 'עריכת מתאמנים') {
+    const modal = document.getElementById('edit-members-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalList = document.getElementById('modal-members-list');
+    modalTitle.textContent = title;
+    modalList.innerHTML = '';
+    if (!members.length) {
+        modalList.innerHTML = '<div style="padding:20px;">לא נמצאו מתאמנים</div>';
+    } else {
+        // Table like all_members
+        const table = document.createElement('table');
+        table.className = 'modal-members-table';
+        table.innerHTML = `<thead><tr><th>שם</th><th>טלפון</th><th>מייל</th><th>סוג מנוי</th><th>סטטוס</th><th>פעולה</th></tr></thead>`;
+        const tbody = document.createElement('tbody');
+        members.forEach(member => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${member.fullName || '-'}</td>
+                <td>${member.phone || '-'}</td>
+                <td>${member.email || '-'}</td>
+                <td>${member.membershipType || '-'}</td>
+                <td>${member.membershipStatus || '-'}</td>
+                <td><button class="blue-btn" onclick="window.location.href='/member_profile?id=${member._id}'">צפה בפרופיל</button></td>
+            `;
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        modalList.appendChild(table);
+    }
+    modal.style.display = 'block';
+}
+
+document.getElementById('close-modal-btn').onclick = () => {
+    document.getElementById('edit-members-modal').style.display = 'none';
+};
+window.onclick = function(event) {
+    const modal = document.getElementById('edit-members-modal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+};
 
 function updateStats(members) {
     const today = new Date().toISOString().split('T')[0];
@@ -51,62 +103,132 @@ function updateStats(members) {
     
     document.getElementById('today-entries').textContent = todayEntries;
     document.getElementById('total-members').textContent = members.length;
-    document.getElementById('active-members').textContent = activeMembers;
+    document.getElementById('active-members').textContent = activeMembers;  
 }
 
-function createClassDistributionChart(members) {
+// New: Update today's entries table
+function updateTodayEntriesTable(members) {
+    const today = new Date().toISOString().split('T')[0];
+    const todayEntries = members.filter(member => 
+        member.lastVisit && member.lastVisit.startsWith(today)
+    );
+    const tbody = document.querySelector('#today-entries-table tbody');
+    tbody.innerHTML = '';
+    if (todayEntries.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 5;
+        cell.textContent = 'אין כניסות היום';
+        cell.style.textAlign = 'center';
+        row.appendChild(cell);
+        tbody.appendChild(row);
+        return;
+    }
+    todayEntries.forEach(member => {
+        const row = document.createElement('tr');
+        const nameCell = document.createElement('td');
+        nameCell.textContent = member.fullName || member.name || '-';
+        const timeCell = document.createElement('td');
+        if (member.lastVisit) {
+            const time = member.lastVisit.split('T')[1]?.slice(0,5) || '';
+            timeCell.textContent = time;
+        } else {
+            timeCell.textContent = '-';
+        }
+        const phoneCell = document.createElement('td');
+        phoneCell.textContent = member.phone || '-';
+        const typeCell = document.createElement('td');
+        typeCell.textContent = member.membershipType || '-';
+        const statusCell = document.createElement('td');
+        statusCell.textContent = member.membershipStatus || '-';
+        row.appendChild(nameCell);
+        row.appendChild(timeCell);
+        row.appendChild(phoneCell);
+        row.appendChild(typeCell);
+        row.appendChild(statusCell);
+        tbody.appendChild(row);
+    });
+}
+
+
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Count today's entries
+    const todayEntries = members.filter(member => 
+        member.lastVisit && member.lastVisit.startsWith(today)
+    ).length;
+    
+    // Count active members
+    const activeMembers = members.filter(member => 
+        member.membershipStatus === 'active'
+    ).length;
+    document.getElementById('today-entries').textContent = todayEntries;
+    document.getElementById('total-members').textContent = members.length;
+    document.getElementById('active-members').textContent = activeMembers;
+
+    function createClassDistributionChart(members) {
     try {
         const canvas = document.getElementById('class-distribution');
         if (!canvas) {
             console.error('Cannot find class-distribution canvas');
             return;
         }
-
         // Clear any existing chart
         if (canvas.chart) {
             canvas.chart.destroy();
         }
-
         const classTypes = {};
         members.forEach(member => {
             if (member.membershipType) {
                 classTypes[member.membershipType] = (classTypes[member.membershipType] || 0) + 1;
             }
         });
-
         const ctx = canvas.getContext('2d');
-        canvas.chart = new Chart(ctx, {
+        const chart = new Chart(ctx, {
             type: 'pie',
             data: {
                 labels: Object.keys(classTypes),
                 datasets: [{
                     data: Object.values(classTypes),
                     backgroundColor: [
-                        '#FF6384',
-                        '#36A2EB',
-                        '#FFCE56',
-                        '#4BC0C0',
-                        '#9966FF'
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FFA07A', '#8FBC8F'
                     ]
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'right',
                         rtl: true,
-                        labels: {
-                            font: {
-                                size: 15 // Reduced font size
-                            },
-                            boxWidth: 15 // Smaller legend boxes
+                        labels: { font: { size: 15 }, boxWidth: 15 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                return `${label}: ${value}`;
+                            }
                         }
+                    }
+                },
+                onClick: function(evt, elements) {
+                    if (elements && elements.length > 0) {
+                        const idx = elements[0].index;
+                        const label = chart.data.labels[idx];
+                        // Filter members by this type
+                        const filtered = window._dashboardMembers.filter(m => m.membershipType === label);
+                        showEditMembersModal(filtered, `מתאמנים מסוג: ${label}`);
                     }
                 }
             }
         });
+        canvas.chart = chart;
+        // Ensure container fits the chart
+        canvas.parentElement.style.height = '250px';
+        canvas.style.height = '250px';
     } catch (error) {
         console.error('Error creating class distribution chart:', error);
     }
@@ -225,6 +347,7 @@ function updateExpiringMembershipsTable(members) {
                 <td>${new Date(member.subscriptionvalid).toLocaleDateString('he-IL')}</td>
                 <td>${member.membershipType}</td>
                 <td><span class="${status === 'לא שולם' ? 'status-unpaid' : 'status-expiring'}">${status}</span></td>
+                <td><button class="blue-btn" onclick="window.location.href='/member_profile?id=${member._id}'">צפה בפרופיל</button></td>
             </tr>
         `;
     }).join('');

@@ -34,6 +34,11 @@
             
             <!-- Stats Grid -->
             <div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <h3>כניסות השבוע</h3>
+        <div id="weekly-entries-count" class="stat-number">0</div>
+    </div>
                 <div class="stat-card">
                     <div class="stat-icon">👥</div>
                     <h3>כניסות היום</h3>
@@ -48,6 +53,28 @@
                     <div class="stat-icon">✅</div>
                     <h3>מנויים פעילים</h3>
                     <div id="active-members" class="stat-number">0</div>
+                </div>
+            </div>
+
+            <!-- Today's Entries Table -->
+            <div class="table-container today-entries-table">
+                <div class="table-header">
+                    <h3>רשימת כניסות היום</h3>
+                    <span class="table-badge success">היום</span>
+                </div>
+                <div class="table-wrapper">
+                    <table id="today-entries-table">
+                        <thead>
+                            <tr>
+                                <th>שם</th>
+                                <th>שעה</th>
+                                <th>טלפון</th>
+                                <th>סוג מנוי</th>
+                                <th>סטטוס</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
             </div>
 
@@ -83,6 +110,7 @@
                                     <th>תאריך סיום</th>
                                     <th>סוג מנוי</th>
                                     <th>סטטוס</th>
+                                    <th>עמוד פרופיל</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -111,6 +139,14 @@
                 </div>
             </div>
         </main>
+    </div>
+    <!-- Modal for editing members -->
+    <div id="edit-members-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-modal" id="close-modal-btn">&times;</span>
+            <h2 id="modal-title">עריכת מתאמנים</h2>
+            <div id="modal-members-list"></div>
+        </div>
     </div>
     <script src="/static/main_page/app.js"></script>
 </body>

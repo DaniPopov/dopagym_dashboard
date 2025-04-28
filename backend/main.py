@@ -94,6 +94,13 @@ async def login_page():
 async def root():
     return RedirectResponse(url="/login")
 
+# API endpoint for weekly entries
+@app.get("/api/v1/members/weekly_entries")
+async def get_weekly_entries():
+    db = MongoOrYehuda()
+    count = db.get_weekly_entries_count()
+    return {"weekly_entries": count}
+
 # Protected routes - require authentication
 @app.get("/main_page")
 async def main_page():

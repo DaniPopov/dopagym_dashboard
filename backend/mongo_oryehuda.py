@@ -26,6 +26,36 @@ logger = logging.getLogger(__name__)
 
 
 class MongoOrYehuda:
+    def get_weekly_entries_count(self):
+        """
+        Count the number of unique member entries (visits) for the current week (Sunday to Friday, inclusive).
+        Returns the total number of entries (not unique members, but total visits).
+        """
+        try:
+            israel_tz = pytz.timezone('Asia/Jerusalem')
+            now = datetime.now(israel_tz)
+            # Find the most recent Sunday
+            start_of_week = now - timedelta(days=(now.weekday() + 1) % 7)
+            start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+            # End is Friday 23:59:59
+            end_of_week = start_of_week + timedelta(days=5, hours=23, minutes=59, seconds=59)
+
+            # Query allVisits arrays for entries in this range
+            pipeline = [
+                {"$unwind": "$allVisits"},
+                {"$match": {
+                    "allVisits": {
+                        "$gte": start_of_week,
+                        "$lte": end_of_week
+                    }
+                }}
+            ]
+            entries = list(self.members.aggregate(pipeline))
+            return len(entries)
+        except Exception as e:
+            logger.error(f"❌ Error counting weekly entries: {e}")
+            return 0
+
     def __init__(self):
         self.client = self._connect()
         self.db = self.client["dopamiengym_db"]
