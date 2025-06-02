@@ -29,9 +29,11 @@ class Member_OrYehuda(BaseModel):
     # Additional fields for future use
     emergency_contact: Optional[dict] = None
     notes: Optional[str] = None
-    # TODO: add field for sauna --> int range 1-10 --> default 0
-    # TODO: add field for massage --> int range 1-10 --> default 0
 
+    #GYM ALLOWND
+    gym_allowed: Optional[bool] = False
+
+    
 class Member_BatYam(BaseModel):
     fullName: str
     phone: str
