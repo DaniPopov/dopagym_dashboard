@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lastVisit: lastVisit,
             allVisits: allVisits,
             paymentStatus: "paid",
-            membershipStatus: "active"
+            membershipStatus: "active",
         };
 
         try {

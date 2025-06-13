@@ -259,16 +259,18 @@ document.addEventListener('DOMContentLoaded', function () {
         // Regular membership handling for weekly limits
         let allowedWorkoutsPerWeek = 1;
         
-        if (member.weeklyTraining.includes('250') || member.weeklyTraining.includes('200')) {
+        if(member.weeklyTraining === 'פעם בשבוע'){
             allowedWorkoutsPerWeek = 1;
-        } else if (member.weeklyTraining.includes('350') || member.weeklyTraining.includes('300')) {
+        } else if(member.weeklyTraining === 'שני אימונים בשבוע' || member.weeklyTraining === 'חוג אחד בשבוע (2 כניסות)'){
             allowedWorkoutsPerWeek = 2;
-        } else if (member.weeklyTraining.includes('450')) {
+        } else if(member.weeklyTraining === 'שלוש כניסות בשבוע'){
             allowedWorkoutsPerWeek = 3;
-        } else if (member.weeklyTraining.includes('550')) {
+        } else if(member.weeklyTraining === 'שני חוגים בשבוע (4 כניסות)'){
+            allowedWorkoutsPerWeek = 4;
+        } else if(member.weeklyTraining === 'מנוי מלא'){
             allowedWorkoutsPerWeek = 999;
         }
-        
+
         // Get start of current week (Sunday)
         const today = new Date();
         const currentWeekStart = new Date(today);

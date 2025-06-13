@@ -10,6 +10,7 @@ body {
     direction: rtl; /* Hebrew right-to-left */
 }
 
+
 /* Dashboard Layout */
 .dashboard-container {
     display: flex;
@@ -146,6 +147,7 @@ body {
     background-color: white;
     appearance: auto; /* This ensures the dropdown arrow appears properly */
 }
+
 
 /* Add a specific style for select elements */
 .form-group select {
